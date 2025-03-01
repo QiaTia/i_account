@@ -24,9 +24,9 @@ class AbandonPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       // color: Colors.lightBlueAccent.withOpacity(0.1),
-      decoration: BoxDecoration(
-        border: Border.all(color: darkGreen),
-      ),
+      // decoration: BoxDecoration(
+      //   border: Border.all(color: darkGreen),
+      // ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

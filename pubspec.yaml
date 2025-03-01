@@ -33,10 +33,23 @@ dependencies:
 
   json_model:
   dio: ^5.5.0
+  easy_localization:
+  shared_preferences:
+  permission_handler:
+  package_info_plus: 8.0.2 
+  font_awesome_flutter: ^10.8.0
+  riverpod:
+  sqflite: ^2.0.0+4
+  path_provider: ^2.0.11
+  path: ^1.8.0
+  # Riverpod核心库
+  flutter_riverpod: ^2.5.1
+  # Riverpod注解
+  riverpod_annotation: ^2.3.5
+
   get:
   get_storage: ^2.1.1
-  easy_refresh: 3.4.0
-  package_info_plus: 8.0.2 
+  # easy_refresh: 3.4.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   # cupertino_icons: ^1.0.8
@@ -51,6 +64,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+  # Dart代码生成文件
+  build_runner:
+  # 为Dart和Flutter项目自定义lint规则，Lint有助于捕获潜在错误，并强制执行一致的编程风格
+  custom_lint:
+  # Riverpod代码生成器
+  riverpod_generator: ^2.6.3
+  # 专为Riverpod设计的一套lint规则，有助于再使用Riverpod时执行最佳实践
+  riverpod_lint: ^2.3.10
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -64,9 +85,10 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/translations/
+    - assets/images/
+    - assets/icon/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
