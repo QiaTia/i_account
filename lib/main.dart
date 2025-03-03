@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/views/game/2048.dart';
 import 'package:i_account/views/home/home.dart';
 import 'package:i_account/views/piece.dart';
 import './views/login/login.dart';
@@ -14,12 +15,14 @@ import './store/set.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  runApp(ProviderScope(child: EasyLocalization(
-      supportedLocales: const [startLocale, Locale('en')],
-      path: 'assets/translations', // <-- change the path of the translation files 
-      startLocale: startLocale,
-      fallbackLocale: const Locale('en'),
-      child: const MyApp())));
+  runApp(ProviderScope(
+      child: EasyLocalization(
+          supportedLocales: const [startLocale, Locale('en')],
+          path:
+              'assets/translations', // <-- change the path of the translation files
+          startLocale: startLocale,
+          fallbackLocale: const Locale('en'),
+          child: const MyApp())));
 }
 
 class MyApp extends StatelessWidget {
@@ -34,7 +37,8 @@ class MyApp extends StatelessWidget {
       supportedLocales: context.supportedLocales,
       locale: context.locale,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey, primary: Colors.blueGrey),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blueGrey, primary: Colors.blueGrey),
         hintColor: const Color(0xFF132033),
         useMaterial3: true,
       ),
@@ -45,9 +49,10 @@ class MyApp extends StatelessWidget {
         '/game': (context) => const GoGame(),
         '/calc': (context) => CalculatorScreen(),
         '/mine/settings': (context) => const SettingsPage(),
-        '/music/player': (_) => MusicPlayerPage()
+        '/music/player': (_) => MusicPlayerPage(),
+        '/2048': (_) => My2048Game(),
       },
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
