@@ -9,8 +9,8 @@
   "secondPage": "this is the second Page",
   "help": "help",
   "settings": "Settings",
-  "home.spending": "Spending",
-  "home.income": "Income",
+  "expense": "Expense",
+  "income": "Income",
   "mini.dark": "Dark",
   "mini.light": "Light",
   "mini.following": "Following System",
@@ -28,5 +28,12 @@
   "mini.theme_settings": "Theme Settings",
   "mini.language_settings": "Language Settings",
   "mini.error": "Error",
-  "mini.success": "Success"
+  "mini.success": "Success",
+  "WeekName.monday": "Monday",
+  "WeekName.tuesday": "Tuesday",
+  "WeekName.wednesday": "Wednesday",
+  "WeekName.thursday": "Thursday",
+  "WeekName.friday": "Friday",
+  "WeekName.saturday": "Saturday",
+  "WeekName.sunday": "Sunday"
 }

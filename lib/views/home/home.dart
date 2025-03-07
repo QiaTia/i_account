@@ -1,29 +1,30 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/model/record.dart';
+import 'package:i_account/views/home/Widget/datePicker.dart';
+import 'package:i_account/views/home/Widget/record.dart';
 import '../../store/set.dart';
-
-// class MyHomePage extends StatefulWidget {
-//   const MyHomePage({super.key, required this.title});
-
-//   final String title;
-
-//   @override
-//   State<MyHomePage> createState() => _MyHomePageState();
-// }
-
 class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
-
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    print('refresh');
     final appBar = AppBar(
       backgroundColor: Colors.transparent,
       title: const Text('appTitle').tr(),
     );
+    void onTap() async {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      ).catchError((err) {
+        print('err:$err');
+      });
+      print(result);
+    }
     return Scaffold(
       appBar: appBar,
       body: Stack(children: [
@@ -53,7 +54,8 @@ class MyHomePage extends ConsumerWidget {
               FilledButton(
                   onPressed: () {
                     // navigator.pushNamed("/word");
-                    Navigator.of(context).pushNamed("/word");
+                    // Navigator.of(context).pushNamed("/account/new");
+                    onTap();
                   },
                   child: const Text("mini.about").tr()),
             ],
@@ -62,7 +64,8 @@ class MyHomePage extends ConsumerWidget {
       ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          ref.read(clickCountProvider.notifier).increment();
+          showRecordPopup(context);
+          // ref.read(clickCountProvider.notifier).increment();
         },
         tooltip: 'Add',
         child: const Icon(Icons.add),
@@ -78,21 +81,23 @@ class NavContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabList = ['bill', 'detail', 'budget', 'home'];
-
+    final tabList = ['bill', 'detail', 'budget', 'settings'];
+    final nav = Navigator.of(context);
     /// 菜单点击时
     void onMenuClick(String name) {
       switch (name) {
         case 'bill':
-          // Navigator.of(context).pushNamed('/bill');
+          nav.pushNamed('/$name');
           break;
         case 'detail':
-          // Navigator.of(context).pushNamed('/detail');
+          nav.pushNamed('/bill/chart');
+          // nav.pushNamed('/details/detail');
           break;
-        case 'home':
-          Navigator.of(context).pushNamed('/mine/settings');
+        case 'settings':
+          nav.pushNamed('/mine/settings');
           break;
         case 'budget':
+          nav.pushNamed('/budget');
           // Navigator.of(context).pushNamed('/budget');
           break;
         default:
@@ -141,68 +146,78 @@ class NavContainer extends StatelessWidget {
 }
 
 /// 顶部数据栏
-class NavDataContainer extends StatefulWidget {
+class NavDataContainer extends StatelessWidget {
   const NavDataContainer({super.key});
-  @override
-  State<StatefulWidget> createState() => _NavDataContainer();
-}
-
-class _NavDataContainer extends State<NavDataContainer> {
-  var selectedDate = DateTime.now();
-  Future<void> _selectDate() async {
-    _showYearMonthPicker(context: context);
-    // final DateTime? picked = await showDatePicker(
-    //   context: context,
-    //   initialDate: selectedDate,
-    //   firstDate: DateTime(1900),
-    //   lastDate: DateTime(2100),
-    // );
-    // if (picked != null && picked != selectedDate) {
-    //   setState(() => selectedDate = picked);
-    // }
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Row(children: [
+    void onMenuClick(CategoryType type) {
+      // 点击事件
+      print('onMenuClick: $type');
+      Navigator.of(context).pushNamed('/details/details', arguments: {'type': type});
+    }
+    return Consumer(builder: (content, ref, child) {
+      /// 选中日期
+      final DateTime select = ref.watch(selectDateProvider);
+
+      Future<void> onSelectDate() async {
+        var respond = await showYearMonthPicker(context: context, value: select);
+        if (respond != null) {
+          ref.read(selectDateProvider.notifier).update(respond);
+        }
+      }
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Row(children: [
+            InkWell(
+              onTap: onSelectDate,
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(children: [
+                    Text(select.year.toString()),
+                    const SizedBox(width: 8)
+                  ]),
+                  Row(children: [
+                    Text(select.month.toString().padLeft(2, '0'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    const Icon(Icons.arrow_drop_down, size: 14),
+                  ],)
+                ]
+              ),
+            ),
+            const Padding(padding: EdgeInsets.only(left: 12)),
+            const DecoratedBox(
+                decoration: BoxDecoration(
+                    border: Border(
+                  right: BorderSide(
+                    color: Colors.black, // 边框颜色
+                    width: 1.0, // 边框宽度
+                    style: BorderStyle.solid, // 边框样式（可选，默认为 solid）
+                  ),
+                )),
+                child: SizedBox(width: 0, height: 24)),
+          ]),
           InkWell(
-            onTap: _selectDate,
-            child: Column(children: [
-              const Text('home.income').tr(),
-              const SizedBox(height: 4),
-              const Text('￥0.00',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ]),
+            onTap: () { onMenuClick(CategoryType.income); },
+              child: Column(children: [
+                const Text('income').tr(),
+                const SizedBox(height: 4),
+                const Text('￥0.00', style: TextStyle(fontWeight: FontWeight.bold)),
+              ]),
           ),
-          const Padding(padding: EdgeInsets.only(left: 12)),
-          const DecoratedBox(
-              decoration: BoxDecoration(
-                  border: Border(
-                right: BorderSide(
-                  color: Colors.black, // 边框颜色
-                  width: 1.0, // 边框宽度
-                  style: BorderStyle.solid, // 边框样式（可选，默认为 solid）
-                ),
-              )),
-              child: SizedBox(width: 0, height: 24)),
-        ]),
-        Column(children: [
-          const Text('home.income').tr(),
-          const SizedBox(height: 4),
-          const Text('￥0.00', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        Column(
-          children: [
-            const Text('home.spending').tr(),
-            const SizedBox(height: 4),
-            const Text('￥0.00', style: TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ],
-    );
+          InkWell(
+            onTap: () { onMenuClick(CategoryType.expense); },
+            child: Column(
+              children: [
+                const Text('expense').tr(),
+                const SizedBox(height: 4),
+                const Text('￥0.00', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+          ))
+        ],
+      );
+    });
   }
 }
 
@@ -328,229 +343,3 @@ class BottomBarItem extends StatelessWidget {
   }
 }
 
-/// ③ 创建一个YearPicker组件，用于显示年份选择器
-// void _showYearMonthPicker(BuildContext context) {
-//   DateTime selectedDate = DateTime.now();
-//   showDialog(
-//     context: context,
-//     builder: (context) => AlertDialog(
-//       content: SizedBox(
-//         width: 300,
-//         height: 300,
-//         child: Column(
-//           children: [
-//             // 年份选择
-//             Expanded(
-//               child: YearPicker(
-//                 selectedDate: selectedDate,
-//                 firstDate: DateTime(2000),
-//                 lastDate: DateTime(2030),
-//                 onChanged: (date) {
-//                   selectedDate = date;
-//                   // 可在此处联动月份选择
-//                 },
-//               ),
-//             ),
-//             // 月份选择
-//             Expanded(
-//               child: GridView.builder(
-//                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//                   crossAxisCount: 4,
-//                 ),
-//                 itemBuilder: (context, index) => TextButton(
-//                   onPressed: () {
-//                     final selectedYearMonth = DateTime(
-//                       selectedDate.year,
-//                       index + 1,
-//                     );
-//                     Navigator.pop(context, selectedYearMonth);
-//                   },
-//                   child: Text('${index + 1}月'),
-//                 ),
-//                 itemCount: 12,
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     ),
-//   );
-// }
-
-void _showYearMonthPicker({required BuildContext context}) async {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return CustomDatePicker(
-        title: "Select Date",
-        value: DateTime.now(),
-        start: DateTime(2000),
-        end: DateTime(2100, 12, 31),
-        fields: const ['year', 'month'],
-      );
-    },
-  );
-}
-
-class CustomDatePicker extends StatefulWidget {
-  final String title;
-  final DateTime? value;
-  final DateTime? start;
-  final DateTime? end;
-  final List<String> fields;
-
-  const CustomDatePicker({
-    super.key,
-    required this.title,
-    this.value,
-    this.start,
-    this.end,
-    this.fields = const ['year', 'month', 'day'],
-  });
-
-  @override
-  _CustomDatePickerState createState() => _CustomDatePickerState();
-}
-
-class _CustomDatePickerState extends State<CustomDatePicker> {
-  late FixedExtentScrollController _yearController;
-  late FixedExtentScrollController _monthController;
-  late FixedExtentScrollController _dayController;
-  late int _selectedYear;
-  late int _selectedMonth;
-  late int _selectedDay;
-  late DateTime limiStart;
-  late DateTime limiEnd;
-
-  @override
-  void initState() {
-    super.initState();
-    limiStart = widget.start ?? DateTime.now();
-    limiEnd = widget.end ?? DateTime.now();
-    _selectedYear = widget.value?.year ?? limiStart.year;
-    _selectedMonth = widget.value?.month ?? limiStart.month;
-    _selectedDay = widget.value?.day ?? limiStart.day;
-
-    _yearController = FixedExtentScrollController(
-        initialItem: _selectedYear - limiStart.year);
-    _monthController =
-        FixedExtentScrollController(initialItem: _selectedMonth - 1);
-    _dayController = FixedExtentScrollController(initialItem: _selectedDay - 1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(8.0),
-          topRight: Radius.circular(8.0),
-        ),
-      ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
-        height: 420,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              height: 40.0,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.transparent,
-                    ),
-                    onPressed: () {},
-                  ),
-                  Text(widget.title,
-                      style: const TextStyle(
-                          fontSize: 18.0, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 300,
-              child: Row(children: [
-                if (widget.fields.contains('year'))
-                  Expanded(
-                    child: CupertinoPicker.builder(
-                      itemExtent: 50.0,
-                      scrollController: _yearController,
-                      onSelectedItemChanged: (int index) {
-                        setState(() {
-                          _selectedYear = limiStart.year + index;
-                        });
-                      },
-                      childCount: limiEnd.year - limiStart.year + 1,
-                      itemBuilder: (context, index) {
-                        return Center(child: Text('${limiStart.year + index}'));
-                      },
-                    ),
-                  ),
-                if (widget.fields.contains('month'))
-                  Expanded(
-                    child: CupertinoPicker.builder(
-                      itemExtent: 50.0,
-                      scrollController: _monthController,
-                      onSelectedItemChanged: (int index) {
-                        setState(() {
-                          _selectedMonth = index + 1;
-                        });
-                      },
-                      childCount: 12,
-                      itemBuilder: (context, index) {
-                        return Center(child: Text('${index + 1}'));
-                      },
-                    ),
-                  ),
-                if (widget.fields.contains('day'))
-                  Expanded(
-                    child: CupertinoPicker.builder(
-                      itemExtent: 50.0,
-                      scrollController: _dayController,
-                      onSelectedItemChanged: (int index) {
-                        setState(() {
-                          _selectedDay = index + 1;
-                        });
-                      },
-                      childCount:
-                          DateTime(_selectedYear, _selectedMonth + 1, 0).day,
-                      itemBuilder: (context, index) {
-                        return Center(child: Text('${index + 1}'));
-                      },
-                    ),
-                  ),
-              ]),
-            ),
-            SizedBox(
-              width: double.infinity,
-              height: 32.0,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context,
-                      DateTime(_selectedYear, _selectedMonth, _selectedDay));
-                },
-                child: const Text('Confirm'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

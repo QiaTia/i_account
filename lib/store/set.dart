@@ -4,12 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 const startLocale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
 
-// ① 创建一个状态提供者，StateProvider会观察一个值，并再改变时得到通知
-// final clickCountProvider = StateProvider<Locale>((ref) => startLocale);
-
-// @Riverpod(keepAlive: true)
-// Locale clickCount(ClickCount ref) => startLocale;
-
 @riverpod
 class ClickCount extends Notifier<int> {
   // 重写此方法返回Notifier的初始状态
@@ -26,3 +20,17 @@ class ClickCount extends Notifier<int> {
 }
 
 final clickCountProvider = NotifierProvider<ClickCount, int>(() => ClickCount());
+
+
+@riverpod
+class SelectDate extends Notifier<DateTime> {
+  // 重写此方法返回Notifier的初始状态
+  @override
+  DateTime build() => DateTime.now();
+  /// 变更内容
+  void update(DateTime t) {
+    state = t;
+  }
+}
+
+final selectDateProvider = NotifierProvider<SelectDate, DateTime>(() => SelectDate());

@@ -45,5 +45,27 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 后台模式 -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+
+	<!-- 音乐库访问 -->
+	<key>NSAppleMusicUsageDescription</key>
+	<string>需要访问音乐库以选择音频文件</string>
+
+	<!-- 相册访问 -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>需要访问相册以选择图片或视频</string>
+
+	<!-- 文档浏览器支持 -->
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+
+	<!-- 直接打开文件支持 -->
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>

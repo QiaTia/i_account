@@ -9,8 +9,8 @@
   "secondPage": "这里上第二页",
   "help": "帮助",
   "settings": "设置",
-  "home.spending": "支出",
-  "home.income": "收入",
+  "expense": "支出",
+  "income": "收入",
   "mini.dark": "深色",
   "mini.light": "浅色",
   "mini.following": "随系统",
@@ -28,5 +28,12 @@
   "mini.theme_settings": "主题设置",
   "mini.language_settings": "语言设置",
   "mini.error": "错误",
-  "mini.success": "成功"
+  "mini.success": "成功",
+  "WeekName.monday": "周一",
+  "WeekName.tuesday": "周二",
+  "WeekName.wednesday": "周三",
+  "WeekName.thursday": "周四",
+  "WeekName.friday": "周五",
+  "WeekName.saturday": "周六",
+  "WeekName.sunday": "周日"
 }
