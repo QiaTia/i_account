@@ -1,19 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/views/home/Widget/datePicker.dart';
 import 'package:i_account/views/home/Widget/record.dart';
 import '../../store/set.dart';
+
 class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appBar = AppBar(
       backgroundColor: Colors.transparent,
       title: const Text('appTitle').tr(),
+
+      /// 淡出的状态栏渐变背景
+      // flexibleSpace: Container(
+      //   decoration: BoxDecoration(
+      //     gradient: LinearGradient(
+      //       begin: Alignment.topCenter,
+      //       end: Alignment.bottomCenter,
+      //       colors: [
+      //         Theme.of(context).primaryColor, // 起始颜色
+      //         // 默认背景色
+      //         Theme.of(context).colorScheme.onPrimary,
+      //       ],
+      //     ),
+      //   ),
+      // ),
     );
     void onTap() async {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -25,53 +42,86 @@ class MyHomePage extends ConsumerWidget {
       });
       print(result);
     }
-    return Scaffold(
-      appBar: appBar,
-      body: Stack(children: [
-        Transform.translate(
-          offset: Offset(0, -(appBar.preferredSize.height)),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Theme.of(context).primaryColor, // 起始颜色
-                  // 默认背景色
-                  Theme.of(context).colorScheme.surface,
-                ],
+
+    var safeTopAreaHeight =
+        appBar.preferredSize.height + MediaQuery.of(context).padding.top;
+    DateTime? currentBackPressTime;
+    // 返回键退出
+    bool closeOnConfirm() {
+      DateTime now = DateTime.now();
+      // 物理键，两次间隔大于4秒, 退出请求无效
+      if (currentBackPressTime == null ||
+          now.difference(currentBackPressTime!) > const Duration(seconds: 4)) {
+        currentBackPressTime = now;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: const Text('conirmExitApp').tr()));
+        return false;
+      }
+      // 退出请求有效
+      currentBackPressTime = null;
+      return true;
+    }
+
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) {
+            return;
+          }
+          if (closeOnConfirm()) {
+            // 系统级别导航栈 退出程序
+            SystemNavigator.pop();
+          }
+        },
+        child: Scaffold(
+          appBar: appBar,
+          body: Stack(children: [
+            /// 首先使状态栏透明，绘制一个渐变区域位移上去即可
+            Transform.translate(
+              offset: Offset(0, -(safeTopAreaHeight)),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(context).primaryColor, // 起始颜色
+                      // 默认背景色
+                      Theme.of(context).colorScheme.surface,
+                    ],
+                  ),
+                ),
+                child: const SizedBox(height: 250, width: double.infinity),
               ),
             ),
-            child: const SizedBox(height: 300, width: double.infinity),
-          ),
-        ),
-        Center(
-          child: Column(
-            children: <Widget>[
-              const NavDataContainer(),
-              const NavContainer(),
-              const AnimatedText(),
-              FilledButton(
-                  onPressed: () {
-                    // navigator.pushNamed("/word");
-                    // Navigator.of(context).pushNamed("/account/new");
-                    onTap();
-                  },
-                  child: const Text("mini.about").tr()),
-            ],
-          ),
-        )
-      ]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showRecordPopup(context);
-          // ref.read(clickCountProvider.notifier).increment();
-        },
-        tooltip: 'Add',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
+            Center(
+              child: Column(
+                children: <Widget>[
+                  const NavDataContainer(),
+                  const NavContainer(),
+                  const AnimatedText(),
+                  FilledButton(
+                      onPressed: () {
+                        // navigator.pushNamed("/word");
+                        // Navigator.of(context).pushNamed("/account/new");
+                        onTap();
+                      },
+                      child: const Text("mini.about").tr()),
+                ],
+              ),
+            )
+          ]),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showRecordPopup(context);
+              // ref.read(clickCountProvider.notifier).increment();
+            },
+            tooltip: 'Add',
+            child: const Icon(Icons.add),
+          ), // This trailing comma makes auto-formatting nicer for build methods.
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
+        ));
   }
 }
 
@@ -83,6 +133,7 @@ class NavContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabList = ['bill', 'detail', 'budget', 'settings'];
     final nav = Navigator.of(context);
+
     /// 菜单点击时
     void onMenuClick(String name) {
       switch (name) {
@@ -154,18 +205,22 @@ class NavDataContainer extends StatelessWidget {
     void onMenuClick(CategoryType type) {
       // 点击事件
       print('onMenuClick: $type');
-      Navigator.of(context).pushNamed('/details/details', arguments: {'type': type});
+      Navigator.of(context)
+          .pushNamed('/details/details', arguments: {'type': type});
     }
+
     return Consumer(builder: (content, ref, child) {
       /// 选中日期
       final DateTime select = ref.watch(selectDateProvider);
 
       Future<void> onSelectDate() async {
-        var respond = await showYearMonthPicker(context: context, value: select);
+        var respond =
+            await showYearMonthPicker(context: context, value: select);
         if (respond != null) {
           ref.read(selectDateProvider.notifier).update(respond);
         }
       }
+
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -173,18 +228,21 @@ class NavDataContainer extends StatelessWidget {
             InkWell(
               onTap: onSelectDate,
               child: Column(
-                // mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(children: [
-                    Text(select.year.toString()),
-                    const SizedBox(width: 8)
+                  // mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(children: [
+                      Text(select.year.toString()),
+                      const SizedBox(width: 8)
+                    ]),
+                    Row(
+                      children: [
+                        Text(select.month.toString().padLeft(2, '0'),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18)),
+                        const Icon(Icons.arrow_drop_down, size: 14),
+                      ],
+                    )
                   ]),
-                  Row(children: [
-                    Text(select.month.toString().padLeft(2, '0'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    const Icon(Icons.arrow_drop_down, size: 14),
-                  ],)
-                ]
-              ),
             ),
             const Padding(padding: EdgeInsets.only(left: 12)),
             const DecoratedBox(
@@ -199,22 +257,28 @@ class NavDataContainer extends StatelessWidget {
                 child: SizedBox(width: 0, height: 24)),
           ]),
           InkWell(
-            onTap: () { onMenuClick(CategoryType.income); },
-              child: Column(children: [
-                const Text('income').tr(),
-                const SizedBox(height: 4),
-                const Text('￥0.00', style: TextStyle(fontWeight: FontWeight.bold)),
-              ]),
+            onTap: () {
+              onMenuClick(CategoryType.income);
+            },
+            child: Column(children: [
+              const Text('income').tr(),
+              const SizedBox(height: 4),
+              const Text('￥0.00',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ]),
           ),
           InkWell(
-            onTap: () { onMenuClick(CategoryType.expense); },
-            child: Column(
-              children: [
-                const Text('expense').tr(),
-                const SizedBox(height: 4),
-                const Text('￥0.00', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-          ))
+              onTap: () {
+                onMenuClick(CategoryType.expense);
+              },
+              child: Column(
+                children: [
+                  const Text('expense').tr(),
+                  const SizedBox(height: 4),
+                  const Text('￥0.00',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ))
         ],
       );
     });
@@ -342,4 +406,3 @@ class BottomBarItem extends StatelessWidget {
           );
   }
 }
-

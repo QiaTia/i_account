@@ -6,29 +6,32 @@ import 'package:i_account/store/sql.dart';
 /// 打开记录弹窗
 void showRecordPopup(BuildContext context) {
   showGeneralDialog(
-      context: context,
-      // barrierLabel: "Popup",
-      // transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-        return const CustomPopup();
-      },
-      transitionBuilder: (context, a1, a2, widget) {
-        final curvedAnimation = CurvedAnimation(parent: a1, curve: Curves.easeInOut);
-        // if (curvedAnimation.status != AnimationStatus.forward) {
-        //   return widget;
-        // }
-        return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(curvedAnimation),
-          child: FadeTransition(
-            opacity: curvedAnimation,
-            child: widget,
-          ),
-        );
-      },
-    ).then((_) {
-      // Optional: Perform any actions after the dialog is closed
-      print('Dialog closed');
-    });
+    context: context,
+    // barrierLabel: "Popup",
+    // transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (BuildContext context, Animation<double> animation,
+        Animation<double> secondaryAnimation) {
+      return const CustomPopup();
+    },
+    transitionBuilder: (context, a1, a2, widget) {
+      final curvedAnimation =
+          CurvedAnimation(parent: a1, curve: Curves.easeInOut);
+      // if (curvedAnimation.status != AnimationStatus.forward) {
+      //   return widget;
+      // }
+      return SlideTransition(
+        position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+            .animate(curvedAnimation),
+        child: FadeTransition(
+          opacity: curvedAnimation,
+          child: widget,
+        ),
+      );
+    },
+  ).then((_) {
+    // Optional: Perform any actions after the dialog is closed
+    print('Dialog closed');
+  });
 }
 
 class CustomPopup extends StatefulWidget {
@@ -41,10 +44,12 @@ class CustomPopup extends StatefulWidget {
 class _CustomPopupState extends State<CustomPopup> {
   final DBManager db = DBManager();
   List<CategoryItemProvider> items = [];
+
   /// 关闭弹窗
   void onCloseDialog() {
     Navigator.pop(context);
   }
+
   /// 获取分类列表
   void getCategoryList() async {
     db.queryCategoryList().then((list) {
@@ -53,11 +58,13 @@ class _CustomPopupState extends State<CustomPopup> {
       });
     });
   }
+
   @override
   void initState() {
     super.initState();
     getCategoryList();
   }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height / 2;
@@ -69,7 +76,8 @@ class _CustomPopupState extends State<CustomPopup> {
         padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20), topRight: Radius.circular(20)),
         ),
         child: Column(children: [
           Row(
@@ -83,8 +91,8 @@ class _CustomPopupState extends State<CustomPopup> {
                 onPressed: () {},
               ),
               const Text('添加记录',
-                  style: TextStyle(
-                      fontSize: 18.0, fontWeight: FontWeight.bold)),
+                  style:
+                      TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: onCloseDialog,
@@ -92,23 +100,21 @@ class _CustomPopupState extends State<CustomPopup> {
             ],
           ),
           const SizedBox(height: 8),
-          Expanded(child: 
-            GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1,
-              ),
-              itemCount: items.length,
-              itemBuilder: (context, index) => InkWell(
+          Expanded(
+              child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+              childAspectRatio: 1,
+            ),
+            itemCount: items.length,
+            itemBuilder: (context, index) => InkWell(
                 onTap: () {
                   print(items[index].id);
                 },
-                child: RecordItem(item: items[index])
-              ),
-            )
-          )
+                child: RecordItem(item: items[index])),
+          ))
         ]),
       ),
     );
@@ -119,28 +125,29 @@ class _CustomPopupState extends State<CustomPopup> {
 class RecordItem extends StatelessWidget {
   final CategoryItemProvider item;
 
-  const RecordItem({ super.key, required this.item });
+  const RecordItem({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(IconData(int.parse(item.icon), fontFamily: Icons.abc.fontFamily), size: 30),
-            const SizedBox(height: 10),
-            Text(
-              item.name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.all(10),
+      // decoration: BoxDecoration(
+      //   border: Border.all(color: Colors.grey.shade300),
+      //   borderRadius: BorderRadius.circular(10),
+      // ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(IconData(int.parse(item.icon), fontFamily: Icons.abc.fontFamily),
+              size: 28),
+          const SizedBox(height: 4),
+          Text(
+            item.name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 }

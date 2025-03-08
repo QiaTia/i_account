@@ -16,7 +16,7 @@ void main() async {
       child: EasyLocalization(
           supportedLocales: const [startLocale, Locale('en')],
           // <-- change the path of the translation files
-          path: 'assets/translations', 
+          path: 'assets/translations',
           startLocale: startLocale,
           fallbackLocale: const Locale('en'),
           child: const MyApp())));
@@ -34,11 +34,12 @@ class MyApp extends StatelessWidget {
       supportedLocales: context.supportedLocales,
       locale: context.locale,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blueGrey, primary: Colors.blueGrey),
-        hintColor: const Color(0xFF132033),
-        useMaterial3: true,
-      ),
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.blueGrey, primary: Colors.blueGrey),
+          hintColor: const Color(0xFF132033),
+          useMaterial3: true,
+          // 去除TabBar底部线条
+          tabBarTheme: const TabBarTheme(dividerColor: Colors.transparent)),
       debugShowCheckedModeBanner: false,
       routes: routes,
       home: const MyHomePage(),

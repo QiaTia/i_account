@@ -1,9 +1,12 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// 自定义动画打开DatePicker
-Future<DateTime?> showYearMonthPicker({ required BuildContext context, DateTime? start, DateTime? end, DateTime? value }) async {
+Future<DateTime?> showYearMonthPicker(
+    {required BuildContext context,
+    DateTime? start,
+    DateTime? end,
+    DateTime? value}) async {
   return showGeneralDialog<DateTime>(
     context: context,
     pageBuilder: (context, animation, secondaryAnimation) {
@@ -19,7 +22,8 @@ Future<DateTime?> showYearMonthPicker({ required BuildContext context, DateTime?
       // 定义从下到上的动画
       var begin = const Offset(0.0, 1.0); // 起始位置（屏幕底部）
       var end = Offset.zero; // 结束位置（屏幕中央）
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.easeOut));
+      var tween = Tween(begin: begin, end: end)
+          .chain(CurveTween(curve: Curves.easeOut));
 
       return SlideTransition(
         position: animation.drive(tween),
@@ -28,6 +32,7 @@ Future<DateTime?> showYearMonthPicker({ required BuildContext context, DateTime?
     },
   );
 }
+
 /// 自定义日期选择器
 class CustomDatePicker extends StatefulWidget {
   final String title;
@@ -63,6 +68,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   void onCloseDialog() {
     Navigator.of(context).pop();
   }
+
   /// 点击确认
   void onConfirm() {
     final selectedDate = DateTime(_selectedYear, _selectedMonth, _selectedDay);
@@ -98,7 +104,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
       alignment: Alignment.bottomCenter,
       child: Container(
         padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
-        height: 420,
+        height: 320,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -128,8 +134,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 ],
               ),
             ),
-            SizedBox(
-              height: 300,
+            Expanded(
               child: Row(children: [
                 if (widget.fields.contains('year'))
                   Expanded(
@@ -143,7 +148,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                       },
                       childCount: limitEnd.year - limitStart.year + 1,
                       itemBuilder: (context, index) {
-                        return Center(child: Text('${limitStart.year + index}'));
+                        return Center(
+                            child: Text('${limitStart.year + index}'));
                       },
                     ),
                   ),
@@ -159,7 +165,9 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                       },
                       childCount: 12,
                       itemBuilder: (context, index) {
-                        return Center(child: Text((index + 1).toString().padLeft(2, '0')));
+                        return Center(
+                            child:
+                                Text((index + 1).toString().padLeft(2, '0')));
                       },
                     ),
                   ),
