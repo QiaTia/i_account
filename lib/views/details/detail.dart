@@ -152,6 +152,7 @@ class _ExpenseDetailScreen extends State<ExpenseDetailScreen> {
                 '${DateFormat('yyyy/MM/dd').format(record.billDate)} ${WeekName.fromInt(record.billDate.weekday).toString().tr()}'),
             _buildDetailRow('备注', record.remark),
             _buildDetailRow('支付渠道', record.payName ?? ''),
+            _buildDetailRow('导入原始信息', record.originInfo),
           ],
         ),
       ))
@@ -168,6 +169,8 @@ class _ExpenseDetailScreen extends State<ExpenseDetailScreen> {
         const SizedBox(width: 16),
         Expanded(
             child: Text(value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.bold))),
       ]),

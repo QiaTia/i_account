@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
@@ -6,10 +7,12 @@ import 'package:i_account/views/details/detail.dart';
 import '../../store/set.dart';
 
 class DetailPage extends ConsumerWidget {
-  const DetailPage({ super.key });
+  final int type;
+  const DetailPage({ super.key, required this.type });
   @override
   Widget build(context, ref) {
-    double total = 0;
+    var categoryType = CategoryType.fromInt(type);
+    var categoryStr = categoryType.toString().replaceAll(RegExp(r"^\w+."), '').tr();
     // Navigator.of(context);
     var selectDate = ref.watch(selectDateProvider);
     Theme.of(context).primaryColor;
@@ -22,8 +25,9 @@ class DetailPage extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 20),
             decoration: const BoxDecoration(color: Colors.white),
             child: Column(children: [
-              Text('本月总收入', style: Theme.of(context).textTheme.labelMedium),
-              Text(total.toString(), style: Theme.of(context).textTheme.titleLarge),
+              Text('本月总$categoryStr', style: Theme.of(context).textTheme.labelMedium),
+              _TotalWidget(selectDate: selectDate, type: categoryType)
+              // Text(total.toString(), style: Theme.of(context).textTheme.titleLarge),
             ],)
           ),
           const SizedBox(height: 12),
@@ -34,7 +38,7 @@ class DetailPage extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('单笔收入排行', style: Theme.of(context).textTheme.titleMedium),
+                Text('单笔$categoryStr排行', style: Theme.of(context).textTheme.titleMedium),
                 ButtonGroupWidget(
                   items: const ['按金额', '按时间'],
                   onTap: (String selected) {
@@ -44,17 +48,47 @@ class DetailPage extends ConsumerWidget {
             ])
           ),
           Expanded(
-            child: DecoratedBox(decoration: const BoxDecoration(color: Colors.white), child: RecordList(selectDate: selectDate)),
+            child: DecoratedBox(decoration: const BoxDecoration(color: Colors.white), child: RecordList(selectDate: selectDate, type: categoryType)),
           ),
         ],
       ),
     );
   }
 }
+/// 颗粒化合计数据组件
+class _TotalWidget extends StatefulWidget {
+  const _TotalWidget({ required this.selectDate, required this.type});
+  final DateTime selectDate;
+  final CategoryType type;
+  @override
+  State<_TotalWidget> createState() => _TotalWidgetState();
+}
+class _TotalWidgetState extends State<_TotalWidget> {
+  String total = '0.00';
+  final DBManager db = DBManager();
+  // 去查询数据
+  void getDate() async {
+    db.selectRecordTotal(widget.type, widget.selectDate).then((val) {
+      setState(() {
+        total = val;
+      });
+    });
+  }
+  @override
+  void initState() {
+    super.initState();
+    getDate();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Text(total.toString(), style: Theme.of(context).textTheme.titleLarge);
+  }
+}
 
 class RecordList extends StatefulWidget {
-  const RecordList({super.key, required this.selectDate});
+  const RecordList({super.key, required this.selectDate, required this.type});
   final DateTime selectDate;
+  final CategoryType type;
   @override
   State<RecordList> createState() => _RecordListState();
 }
@@ -64,7 +98,7 @@ class _RecordListState extends State<RecordList> {
   DBManager db = DBManager();
   /// 获取数据列表
   void getDate() async {
-    db.selectRecordList(CategoryType.expense, 1, widget.selectDate.year, widget.selectDate.month)
+    db.selectRecordList(widget.type, 1, widget.selectDate.year, widget.selectDate.month, 'amount')
       .then((newList) {
         setState(() {
           list = newList;

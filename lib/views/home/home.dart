@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
+import 'package:i_account/store/sql.dart';
+import 'package:i_account/utils/read_file.dart';
 import 'package:i_account/views/home/Widget/datePicker.dart';
 import 'package:i_account/views/home/Widget/record.dart';
 import '../../store/set.dart';
@@ -33,18 +34,20 @@ class MyHomePage extends ConsumerWidget {
       // ),
     );
     void onTap() async {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-        type: FileType.custom,
-        allowedExtensions: ['csv'],
-      ).catchError((err) {
-        print('err:$err');
+      onFileImportRecord().then((_) {
+        // 导入成功
+        // 刷新账单列表
+        // ref.read(billListProvider.notifier).refresh();
       });
-      print(result);
     }
 
     var safeTopAreaHeight =
         appBar.preferredSize.height + MediaQuery.of(context).padding.top;
+    /// 把顶部安全距离存储到统一变量里面
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(safeTopAreaHeightProvider.notifier).update(safeTopAreaHeight);
+    });
+    
     DateTime? currentBackPressTime;
     // 返回键退出
     bool closeOnConfirm() {
@@ -61,7 +64,6 @@ class MyHomePage extends ConsumerWidget {
       currentBackPressTime = null;
       return true;
     }
-
     return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) async {
@@ -196,17 +198,31 @@ class NavContainer extends StatelessWidget {
   }
 }
 
-/// 顶部数据栏
-class NavDataContainer extends StatelessWidget {
+class NavDataContainer extends StatefulWidget {
   const NavDataContainer({super.key});
+  @override
+  State<StatefulWidget> createState() => _NavDataContainer();
+}
 
+/// 顶部数据栏
+class _NavDataContainer extends State<NavDataContainer> {
+  List<String> navList = ['0.00', '0.00'];
+  final DBManager dbManager = DBManager();
+  /// 获取指定月份数据
+  void getTotalData(DateTime select) async {
+    var income = await dbManager.selectRecordTotal(CategoryType.income, select);
+    var expense = await dbManager.selectRecordTotal(CategoryType.expense, select);
+    setState(() {
+      navList = [income, expense];
+    });
+  }
   @override
   Widget build(BuildContext context) {
     void onMenuClick(CategoryType type) {
       // 点击事件
       print('onMenuClick: $type');
       Navigator.of(context)
-          .pushNamed('/details/details', arguments: {'type': type});
+          .pushNamed('/details/details', arguments: type.state);
     }
 
     return Consumer(builder: (content, ref, child) {
@@ -218,6 +234,7 @@ class NavDataContainer extends StatelessWidget {
             await showYearMonthPicker(context: context, value: select);
         if (respond != null) {
           ref.read(selectDateProvider.notifier).update(respond);
+          getTotalData(respond);
         }
       }
 
@@ -263,8 +280,8 @@ class NavDataContainer extends StatelessWidget {
             child: Column(children: [
               const Text('income').tr(),
               const SizedBox(height: 4),
-              const Text('￥0.00',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('￥${navList[0]}',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             ]),
           ),
           InkWell(
@@ -275,13 +292,19 @@ class NavDataContainer extends StatelessWidget {
                 children: [
                   const Text('expense').tr(),
                   const SizedBox(height: 4),
-                  const Text('￥0.00',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('￥${navList[1]}',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ))
         ],
       );
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getTotalData(DateTime.now());
   }
 }
 

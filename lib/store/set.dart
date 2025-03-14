@@ -34,3 +34,15 @@ class SelectDate extends Notifier<DateTime> {
 }
 
 final selectDateProvider = NotifierProvider<SelectDate, DateTime>(() => SelectDate());
+
+@riverpod
+class SafeTopAreaHeight extends Notifier<double> {
+  // 重写此方法返回Notifier的初始状态
+  @override
+  double build() => 0;
+  /// 变更内容
+  void update(double t) {
+    state = t;
+  }
+}
+final safeTopAreaHeightProvider = NotifierProvider<SafeTopAreaHeight, double>(() => SafeTopAreaHeight());

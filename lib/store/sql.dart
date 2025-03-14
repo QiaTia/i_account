@@ -36,24 +36,25 @@ class DBManager {
           "type INTEGER NOT NULL DEFAULT 1," // 类别类型: 1支出 2收入
           "icon TEXT NOT NULL,"
           "sort_num INTEGER NOT NULL," // 排序
-          "created_at DATETIME DEFAULT (datetime('now', 'localtime')),"
+          "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
           "updated_at DATETIME,"
           "is_deleted INTEGER DEFAULT 0);"; // 是否已删除
       db.execute(dreamTable).then((_) {
         db.rawInsert(
-            "INSERT INTO category(name,type,icon,sort_num,updated_at) VALUES"
-            "('餐饮',1,'58674',0,'2025-03-07T01:14:13.732172'),"
-            "('购物',1,'58780',1,'2025-03-07T01:14:13.732670'),"
-            "('日用',1,'58255',2,'2025-03-07T01:14:13.732710'),"
-            "('交通',1,'57815',3,'2025-03-07T01:14:13.732737'),"
-            "('蔬菜',1,'58259',4,'2025-03-07T01:14:13.732759'),"
-            "('水果',1,'58261',5,'2025-03-07T01:14:13.732787'),"
-            "('零食',1,'57632',6,'2025-03-07T01:14:13.732812'),"
-            "('运动',1,'57820',7,'2025-03-07T01:14:13.733289'),"
-            "('娱乐',1,'58381',8,'2025-03-07T01:14:13.733317'),"
-            "('通讯',1,'58530',9,'2025-03-07T01:14:13.733342'),"
-            "('服饰',1,'57693',10,'2025-03-07T01:14:13.733369'),"
-            "('美容',1,'57938',11,'2025-03-07T01:14:13.733396');");
+            "INSERT INTO category(id, name,type,icon,sort_num,updated_at) VALUES"
+            "(1,'餐饮',1,'58674',0,'2025-03-07T01:14:13.732172'),"
+            "(2,'购物',1,'58780',1,'2025-03-07T01:14:13.732670'),"
+            "(3,'日用',1,'58255',2,'2025-03-07T01:14:13.732710'),"
+            "(4,'交通',1,'57815',3,'2025-03-07T01:14:13.732737'),"
+            "(5,'蔬菜',1,'58259',4,'2025-03-07T01:14:13.732759'),"
+            "(6,'水果',1,'58261',5,'2025-03-07T01:14:13.732787'),"
+            "(7,'零食',1,'57632',6,'2025-03-07T01:14:13.732812'),"
+            "(8,'运动',1,'57820',7,'2025-03-07T01:14:13.733289'),"
+            "(9,'娱乐',1,'58381',8,'2025-03-07T01:14:13.733317'),"
+            "(10,'通讯',1,'58530',9,'2025-03-07T01:14:13.733342'),"
+            "(11,'服饰',1,'57693',10,'2025-03-07T01:14:13.733369'),"
+            "(12,'美容',1,'57938',11,'2025-03-07T01:14:13.733396'),"
+            "(13,'其他',1,'57939',99,'2025-03-07T01:14:13.733396');");
       });
 
       /// 记录项表
@@ -68,7 +69,7 @@ class DBManager {
           "bill_date DATETIME,"
           "remark TEXT NOT NULL DEFAULT '',"
           "pay_platform_id INTEGER DEFAULT 4," // 支付平台关联ID
-          "created_at DATETIME DEFAULT (datetime('now', 'localtime')),"
+          "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
           "updated_at DATETIME,"
           "is_deleted INTEGER DEFAULT 0," // 是否已删除
           "origin_info TEXT)"; // 其他原始信息, 如平台导入原始信息
@@ -79,13 +80,29 @@ class DBManager {
           "id INTEGER PRIMARY KEY AUTOINCREMENT,"
           "pay_name TEXT,"
           "pay_icon TEXT,"
-          "created_at DATETIME DEFAULT (datetime('now', 'localtime')),"
+          "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
           "updated_at DATETIME,"
           "is_deleted INTEGER DEFAULT 0)";
       db.execute(payTable).then((_) {
         db.rawInsert(
             "INSERT INTO `pay_platform`(`pay_name`, `pay_icon`) VALUES('支付宝', 'alipay'),('微信', 'wechat'),('银联', 'unionpay'),('其他', 'other')");
       });
+      /// 预算表
+      var budgetTable = "CREATE TABLE budget ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "amount REAL NOT NULL,"
+        "budget_month INTEGER NOT NULL DEFAULT 0,"
+        "budget_year INTEGER NOT NULL DEFAULT 0,"
+        "created_time DATETIME DEFAULT CURRENT_TIMESTAMP,"
+        "updated_time DATETIME,"
+        "is_deleted INTEGER DEFAULT 0);";
+      db.execute(budgetTable).then((_) {
+          db.execute("CREATE TRIGGER update_budget_time"
+            "AFTER UPDATE ON budget "
+            "BEGIN"
+              "UPDATE budget SET updated_time = CURRENT_TIMESTAMP WHERE id = OLD.id;"
+            "END;");
+        });
     }, onUpgrade: (Database db, int oldVersion, int version) async {
       /// 需要更新的内容
     });
@@ -107,17 +124,21 @@ class DBManager {
           "bill_month,"
           "bill_date,"
           "remark,"
+          "pay_platform_id,"
+          "origin_info,"
           "updated_at"
-          ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          ") VALUES(?, ?, ?, ?, ?, ?, ?,?,?,?, ?)";
       return txn.rawInsert(dataStr, [
         data.amount,
         data.name,
         data.categoryId,
-        data.categoryType,
+        data.categoryType.state,
         billYear,
         billMonth,
         data.billDate.toIso8601String(),
         data.remark,
+        data.payPlatformId ?? 4,
+        data.originInfo ?? '',
         DateTime.now().toIso8601String()
       ]);
     });
@@ -164,8 +185,7 @@ class DBManager {
       data += " AND bill_month = ?";
       query.add(billMonth);
     }
-    data += " ORDER BY ? $orderType LIMIT ?, ?";
-    query.add(order);
+    data += " ORDER BY `$order` $orderType LIMIT ?, ?";
     query.add(limitStart);
     query.add(pageSize);
     List<Map<String, dynamic>> list = await db.rawQuery(data, query);
@@ -197,6 +217,20 @@ class DBManager {
     return count;
   }
 
+  /// 查询月度收入或支出合计
+  Future<String> selectRecordTotal(CategoryType type, DateTime selectDate) async {
+    var result = await db
+      .rawQuery('SELECT SUM(amount) as `total` FROM `records` WHERE category_type = ? AND bill_year = ? AND bill_month = ?', [type.state, selectDate.year, selectDate.month])
+      .catchError((err) {
+        print('err:$err');
+        throw err;
+      });
+    if (result.isNotEmpty) {
+      return (result.first['total'] as double).toStringAsFixed(2);
+    } else {
+      return '0.00';
+    }
+  }
   /// TODO: 查询记录条数
   Future<int> selectRecordCount(String dreamId) async {
     String data = "SELECT COUNT(*) FROM `records`";
@@ -257,3 +291,15 @@ class DBManager {
     ]);
   }
 }
+
+/// 格式化数字
+String formatNumber(double num) {
+  // 保留两位小数
+  String fixed = num.toStringAsFixed(2);
+  // 添加千位分隔符
+  return fixed.replaceAllMapped(
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+    (Match m) => '${m[1]},'
+  );
+}
+

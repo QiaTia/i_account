@@ -27,10 +27,11 @@ Map<String, Widget Function(BuildContext)> routes = {
   '/2048': (_) => My2048Game(),
   '/game/word': (_) => const GameScreen(),
   '/solar': (_) => const SolarSystem(),
-  '/details/details': (_) => const DetailPage(),
+  '/details/details': (context) => DetailPage(type: ModalRoute.of(context)!.settings.arguments as int),
+  '/details/new': (context) => const ExpenseScreenPage(),
   '/budget': (_) => const BudgetScreen(),
   '/bill': (_) => const BalanceScreen(),
-  '/bill/chart': (_) => ExpenditureScreen(),
+  '/bill/chart': (_) => const ExpenditureScreen(),
   '/details/detail': (_) => const ExpenseDetailScreen(),
   '/account/new': (_) => const ExpenseScreenPage(),
 };

@@ -38,8 +38,12 @@ class RecordItem {
   final String icon;
   /// 备注
   final String remark;
+  /// 支付平台ID
+  final int? payPlatformId;
+  /// 
+  final String? originInfo;
   // 记录项目
-  RecordItem({ required this.icon, required this.id, required this.amount, required this.name, required this.categoryId, required this.categoryType, required this.billDate, required this.remark });
+  RecordItem({ required this.icon, this.originInfo, this.payPlatformId, required this.id, required this.amount, required this.name, required this.categoryId, required this.categoryType, required this.billDate, required this.remark });
 
   Map<String, dynamic> toMap() {
     return {
@@ -50,7 +54,9 @@ class RecordItem {
       'categoryType': categoryType.state,
       'bill_date': billDate.toIso8601String(),
       'remark': remark,
-      'icon': icon
+      'icon': icon,
+      'pay_platform_id': payPlatformId,
+      'origin_info': originInfo
     };
   }
   static RecordItem fromJson(Map<String, dynamic> info) {
@@ -62,7 +68,9 @@ class RecordItem {
       categoryType: CategoryType.fromInt(info['category_type']),
       billDate: DateTime.parse(info['bill_date']),
       remark: info['remark'],
-      icon: info['icon'] ?? ''
+      icon: info['icon'] ?? '',
+      payPlatformId: info['pay_platform_id'],
+      originInfo: info['origin_info']?? ''
     );
   }
 }
