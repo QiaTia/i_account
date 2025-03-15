@@ -100,8 +100,7 @@ class DBManager {
           db.execute("CREATE TRIGGER update_budget_time"
             "AFTER UPDATE ON budget "
             "BEGIN"
-              "UPDATE budget SET updated_time = CURRENT_TIMESTAMP WHERE id = OLD.id;"
-            "END;");
+              "UPDATE budget SET updated_time = CURRENT_TIMESTAMP WHERE id = OLD.id;");
         });
     }, onUpgrade: (Database db, int oldVersion, int version) async {
       /// 需要更新的内容
@@ -226,7 +225,7 @@ class DBManager {
         throw err;
       });
     if (result.isNotEmpty) {
-      return (result.first['total'] as double).toStringAsFixed(2);
+      return ((result.first['total']?? 0.0) as double).toStringAsFixed(2);
     } else {
       return '0.00';
     }

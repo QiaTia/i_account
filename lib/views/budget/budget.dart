@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
@@ -18,34 +17,44 @@ class _BudgetScreenState extends State<BudgetScreen> {
   /// 月度预算
   double monthlyBudget = 0.00;
   final DBManager dbManager = DBManager();
+
   /// 设置或更新预算
   void setBudget(double budget, DateTime now) async {
-    var value = await dbManager.db.rawQuery('select * from budget where budget_month =? and budget_year =?', [now.month, now.year]);
+    var value = await dbManager.db.rawQuery(
+        'select * from budget where budget_month =? and budget_year =?',
+        [now.month, now.year]);
     // 存在则更新
     if (value.isNotEmpty) {
       var newBudget = BudgetModel.fromJson(value.first);
-      dbManager.db.rawUpdate('update budget set amount =? where id =?', [budget, newBudget.id]);
+      dbManager.db.rawUpdate(
+          'update budget set amount =? where id =?', [budget, newBudget.id]);
     } else {
-      dbManager.db.rawInsert('insert into budget (amount, budget_month, budget_year) values (?, ?, ?)', [budget, now.month, now.year]);
+      dbManager.db.rawInsert(
+          'insert into budget (amount, budget_month, budget_year) values (?, ?, ?)',
+          [budget, now.month, now.year]);
     }
     setState(() {
       monthlyBudget = budget;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (content, ref, child) {
       /// 选择的日期
       DateTime selectedDate = ref.watch(selectDateProvider);
       print("refresh budget screen");
+
       /// 编辑功能
-      void showBudgetInputDialog() async{
+      void showBudgetInputDialog() async {
         var value = await showInputDialog(context, '请输入月度预算');
         setBudget(value, selectedDate);
       }
+
       return Scaffold(
         appBar: AppBar(
-          title: Text('${selectedDate.year}年${selectedDate.month.toString().padLeft(2, '0')}月总预算'),
+          title: Text(
+              '${selectedDate.year}年${selectedDate.month.toString().padLeft(2, '0')}月总预算'),
           actions: [
             TextButton(
               onPressed: showBudgetInputDialog,
@@ -59,13 +68,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _BudgetItem(
-                selectedDate: selectedDate,
-                monthlyBudget: monthlyBudget,
-                updataBudget: (val) {
-                  setState(() {
-                    monthlyBudget = val;
-                  });
-              }),
+                  selectedDate: selectedDate,
+                  monthlyBudget: monthlyBudget,
+                  updataBudget: (val) {
+                    setState(() {
+                      monthlyBudget = val;
+                    });
+                  }),
             ],
           ),
         ),
@@ -83,6 +92,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
 Future<double> showInputDialog(BuildContext context, String tex) {
   final completer = Completer<double>();
   TextEditingController controller = TextEditingController();
+
   /// 确定
   void onSubmitted() {
     var tex = controller.text;
@@ -94,6 +104,7 @@ Future<double> showInputDialog(BuildContext context, String tex) {
     completer.complete(double.parse(tex));
     Navigator.of(context).pop();
   }
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -104,7 +115,9 @@ Future<double> showInputDialog(BuildContext context, String tex) {
           focusNode: FocusNode(),
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(hintText: '请输入'),
-          onSubmitted: (_) { onSubmitted(); },
+          onSubmitted: (_) {
+            onSubmitted();
+          },
         ),
         actions: <Widget>[
           TextButton(
@@ -130,29 +143,41 @@ typedef ValueChanged<T> = void Function(T value);
 class _BudgetItem extends StatefulWidget {
   final DateTime selectedDate;
   final double monthlyBudget;
+
   /// 月度预算更新回调
   final ValueChanged<double>? updataBudget;
 
-  const _BudgetItem({ required this.selectedDate, required this.monthlyBudget, this.updataBudget });
+  const _BudgetItem(
+      {required this.selectedDate,
+      required this.monthlyBudget,
+      this.updataBudget});
   @override
   State<StatefulWidget> createState() => _BudgetItemState();
 }
+
 class _BudgetItemState extends State<_BudgetItem> {
   final DBManager dbManager = DBManager();
   double remainingBudget = 0.00;
+
   /// 月度支出
   double monthlyExpense = 22.00;
+
   /// 月度预算剩余占比
-  double get monthlyBudgetRate => (widget.monthlyBudget - monthlyExpense) / widget.monthlyBudget * 100;
+  double get monthlyBudgetRate =>
+      (widget.monthlyBudget - monthlyExpense) / widget.monthlyBudget * 100;
+
   /// 数据初始化
   void initData() async {
-    var expense = double.parse(await dbManager.selectRecordTotal(CategoryType.expense, widget.selectedDate));
+    var expense = double.parse(await dbManager.selectRecordTotal(
+        CategoryType.expense, widget.selectedDate));
     setState(() {
       monthlyExpense = expense;
       remainingBudget = widget.monthlyBudget - expense;
     });
 
-    dbManager.db.rawQuery('select * from budget where budget_month = ? and budget_year = ?', [widget.selectedDate.month, widget.selectedDate.year]).then((value) {
+    dbManager.db.rawQuery(
+        'select * from budget where budget_month = ? and budget_year = ?',
+        [widget.selectedDate.month, widget.selectedDate.year]).then((value) {
       if (value.isNotEmpty) {
         var budget = BudgetModel.fromJson(value.first);
         // 。。。
@@ -160,19 +185,23 @@ class _BudgetItemState extends State<_BudgetItem> {
       }
     });
   }
+
   // 覆写 didUpdateWidget, 监听数据变更
   @override
   void didUpdateWidget(oldWidget) {
-    if (widget.monthlyBudget != oldWidget.monthlyBudget || widget.selectedDate != oldWidget.selectedDate) {
+    if (widget.monthlyBudget != oldWidget.monthlyBudget ||
+        widget.selectedDate != oldWidget.selectedDate) {
       initData();
     }
     super.didUpdateWidget(oldWidget);
   }
+
   @override
   void initState() {
     super.initState();
     initData();
   }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -192,7 +221,8 @@ class _BudgetItemState extends State<_BudgetItem> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('剩余预算:', style: TextStyle(fontSize: 18)),
-                  Text(formatNumber(remainingBudget), style: const TextStyle(fontSize: 18)),
+                  Text(formatNumber(remainingBudget),
+                      style: const TextStyle(fontSize: 18)),
                 ],
               ),
               const Divider(),
@@ -200,14 +230,16 @@ class _BudgetItemState extends State<_BudgetItem> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('本月预算:', style: TextStyle(fontSize: 18)),
-                  Text(formatNumber(widget.monthlyBudget), style: const TextStyle(fontSize: 18)),
+                  Text(formatNumber(widget.monthlyBudget),
+                      style: const TextStyle(fontSize: 18)),
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('本月支出:', style: TextStyle(fontSize: 18)),
-                  Text(formatNumber(monthlyExpense), style: const TextStyle(fontSize: 18)),
+                  Text(formatNumber(monthlyExpense),
+                      style: const TextStyle(fontSize: 18)),
                 ],
               ),
             ],
@@ -221,9 +253,10 @@ class _BudgetItemState extends State<_BudgetItem> {
 class BudgetRingChart extends StatelessWidget {
   /// 剩余百分比 0 - 100
   final double rate;
+
   /// 是否无效
   bool get isInvalid => rate < 0 || rate.isInfinite;
-  const BudgetRingChart({ super.key, this.rate = 98 });
+  const BudgetRingChart({super.key, this.rate = 98});
   @override
   Widget build(BuildContext context) {
     print("refresh budget ring chart: ${rate}");
@@ -238,18 +271,19 @@ class BudgetRingChart extends StatelessWidget {
         //   ),
         // ),
         SizedBox(
-          width: 98,
-          height: 98,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: isInvalid ? [
-              const Text('已超支'),
-            ] : [
-              const Text('剩余'),
-              Text('${formatNumber(rate)}%'),
-            ],
-          )
-        ),
+            width: 98,
+            height: 98,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: isInvalid
+                  ? [
+                      const Text('已超支'),
+                    ]
+                  : [
+                      const Text('剩余'),
+                      Text('${formatNumber(rate)}%'),
+                    ],
+            )),
         AnimatedArc(size: 98, angle: isInvalid ? 0 : rate * 3.6),
       ],
     );
@@ -259,19 +293,28 @@ class BudgetRingChart extends StatelessWidget {
 /// 自绘的动画圆弧
 class AnimatedArc extends StatefulWidget {
   final double size;
+
   /// 180度，即一半的圆，单位为度，需要转换为弧度
   final double angle;
+
   /// 动画持续时间，单位为毫秒
   final int duration;
+
   /// 动画圆弧
   final double strokeWidth;
-  const AnimatedArc({ super.key, this.size = 100, this.angle = 180, this.duration = 500, this.strokeWidth = 5 });
+  const AnimatedArc(
+      {super.key,
+      this.size = 100,
+      this.angle = 180,
+      this.duration = 500,
+      this.strokeWidth = 5});
 
   @override
   _AnimatedArcState createState() => _AnimatedArcState();
 }
 
-class _AnimatedArcState extends State<AnimatedArc> with SingleTickerProviderStateMixin {
+class _AnimatedArcState extends State<AnimatedArc>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -295,12 +338,14 @@ class _AnimatedArcState extends State<AnimatedArc> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: CustomPaint(
-        painter: _AnimatedArcPainter(_controller, radius: widget.size / 2, strokeWidth: widget.strokeWidth, angle: widget.angle),
-      )
-    );
+        width: widget.size,
+        height: widget.size,
+        child: CustomPaint(
+          painter: _AnimatedArcPainter(_controller,
+              radius: widget.size / 2,
+              strokeWidth: widget.strokeWidth,
+              angle: widget.angle),
+        ));
   }
 }
 
@@ -309,11 +354,14 @@ class _AnimatedArcPainter extends CustomPainter {
   final double radius;
   final double angle;
   final double strokeWidth;
-  _AnimatedArcPainter(this.animation, {  required this.radius, required this.strokeWidth, required this.angle }) : super(repaint: animation);
+  _AnimatedArcPainter(this.animation,
+      {required this.radius, required this.strokeWidth, required this.angle})
+      : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromCircle(center: Offset(radius, radius), radius: radius - strokeWidth);
+    final rect = Rect.fromCircle(
+        center: Offset(radius, radius), radius: radius - strokeWidth);
 
     /// 背景圆弧
     final paintBg = Paint()
@@ -321,14 +369,17 @@ class _AnimatedArcPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     canvas.drawArc(rect, -pi, 2 * pi, false, paintBg);
+
     /// 动画圆弧
-    Paint paint = Paint()..style = PaintingStyle.stroke..strokeWidth = strokeWidth;
+    Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
 
     canvas.drawArc(
       rect,
       -pi,
       // 动态调整扫过角度
-      animation.value * pi * (angle / 180), 
+      animation.value * pi * (angle / 180),
       false,
       paint,
     );
