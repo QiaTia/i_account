@@ -6,16 +6,18 @@ Future<DateTime?> showYearMonthPicker(
     {required BuildContext context,
     DateTime? start,
     DateTime? end,
+    List<String> fields = const ['year','month'],
+    String title = "Select Date",
     DateTime? value}) async {
   return showGeneralDialog<DateTime>(
     context: context,
     pageBuilder: (context, animation, secondaryAnimation) {
       return CustomDatePicker(
-        title: "Select Date",
+        title: title,
         value: value,
         start: start,
         end: end,
-        fields: const ['year', 'month'],
+        fields: fields,
       );
     },
     transitionBuilder: (context, animation, secondaryAnimation, child) {
