@@ -34,11 +34,12 @@ class MyHomePage extends ConsumerWidget {
       // ),
     );
     void onTap() async {
-      onFileImportRecord().then((_) {
-        // 导入成功
-        // 刷新账单列表
-        // ref.read(billListProvider.notifier).refresh();
-      });
+      // showRecordDialog(context: context);
+      // onFileImportRecord().then((_) {
+      //   // 导入成功
+      //   // 刷新账单列表
+      //   // ref.read(billListProvider.notifier).refresh();
+      // });
     }
 
     var safeTopAreaHeight =

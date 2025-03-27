@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:i_account/model/record.dart';
 
 import 'package:i_account/store/sql.dart';
@@ -59,6 +60,11 @@ class _CustomPopupState extends State<CustomPopup> {
     });
   }
 
+  /// 点击项目
+  void onItemTap(CategoryItemProvider item) {
+    showRecordDialog(context: context, item: item);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,7 +117,7 @@ class _CustomPopupState extends State<CustomPopup> {
             itemCount: items.length,
             itemBuilder: (context, index) => InkWell(
                 onTap: () {
-                  print(items[index].id);
+                  onItemTap(items[index]);
                 },
                 child: RecordItem(item: items[index])),
           ))
@@ -150,4 +156,120 @@ class RecordItem extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 选择日期和输入内容弹窗
+class RecordPopup extends StatefulWidget {
+  /// 分类名称
+  final String categoryName;
+
+  /// 分类id
+  final int categoryId;
+  const RecordPopup(
+      {super.key, required this.categoryName, required this.categoryId});
+  @override
+  State<RecordPopup> createState() => _RecordPopupState();
+}
+
+class _RecordPopupState extends State<RecordPopup> {
+  /// 备注
+  String remark = '';
+
+  /// 金额
+  String amount = '';
+
+  /// 日期
+  DateTime date = DateTime.now();
+
+  /// 取消
+  void onCancel() {
+    Navigator.pop(context);
+  }
+
+  /// 确认
+  void onConfirm() {
+    print('$remark $amount $date');
+    onCancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.categoryName,
+                style: const TextStyle(
+                    fontSize: 18.0, fontWeight: FontWeight.bold),
+              ),
+              const Text(
+                '2025-03-26',
+                style: TextStyle(fontSize: 16.0),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 40.0, bottom: 12),
+            child: TextField(
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+              ],
+              textAlign: TextAlign.center,
+              focusNode: FocusNode(),
+              onChanged: (value) => amount = value,
+              decoration: const InputDecoration(
+                hintText: '请输入成本',
+              ),
+            ),
+          ),
+          TextField(
+            onChanged: (value) => remark = value,
+            decoration: const InputDecoration(
+              hintText: '项目描述:',
+              hintStyle: TextStyle(fontSize: 14),
+              border: InputBorder.none,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: onCancel,
+                child: const Text('取消'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: FilledButton(
+                  onPressed: onConfirm,
+                  child: const Text('确定'),
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 显示记录弹窗
+void showRecordDialog(
+    {required BuildContext context, required CategoryItemProvider item}) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: RecordPopup(categoryName: item.name, categoryId: item.id ?? 0),
+      );
+    },
+  );
 }

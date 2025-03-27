@@ -164,7 +164,7 @@ class DBManager {
   }
 
   /// 查询记录列表
-  Future<List<RecordItem>> selectRecordList(
+  Future<PageResult<RecordItem>> selectRecordList(
       [CategoryType categoryType = CategoryType.expense,
       int page = 1,
       int? billYear,
@@ -175,24 +175,28 @@ class DBManager {
     String data =
         "SELECT r.*, c.icon FROM `records` r LEFT JOIN category c ON r.category_id = c.id WHERE category_type = ?";
     // [categoryType, billYear, billMonth, limitStart, pageSize]
+    String countStr = "SELECT COUNT(*) FROM `records` WHERE category_type = ${categoryType.state}";
     List<Object> query = [categoryType.state];
     if (billYear != null) {
       data += " AND bill_year = ?";
+      countStr += " AND bill_year = $billYear";
       query.add(billYear);
     }
     if (billMonth != null) {
       data += " AND bill_month = ?";
+      countStr += " AND bill_month = $billMonth";
       query.add(billMonth);
     }
     data += " ORDER BY `$order` $orderType LIMIT ?, ?";
     query.add(limitStart);
     query.add(pageSize);
-    List<Map<String, dynamic>> list = await db.rawQuery(data, query);
-    if (list.isEmpty) {
-      return [];
+    int? count = Sqflite.firstIntValue(await db.rawQuery(countStr));
+    if (count == null || count == 0) {
+      return PageResult(currentPage: page, pageSize: pageSize, total: 0, data: []);
     }
+    List<Map<String, dynamic>> list = await db.rawQuery(data, query);
     List<RecordItem> models = list.map((e) => RecordItem.fromJson(e)).toList();
-    return models;
+    return PageResult(currentPage: page, pageSize: pageSize, total: count, data: models);
   }
 
   /// 查询记录
@@ -302,3 +306,16 @@ String formatNumber(double num) {
   );
 }
 
+/// 拼接分页参数
+class PageResult<T> {
+  final int currentPage;
+  final int pageSize;
+  final int total;
+  final List<T> data;
+  PageResult({
+    required this.currentPage,
+    required this.pageSize,
+    required this.total,
+    required this.data,
+  });
+}

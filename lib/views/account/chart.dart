@@ -16,7 +16,6 @@ class ExpenditureScreen extends StatefulWidget {
 
 class _ExpenditureScreenState extends State<ExpenditureScreen> {
   CategoryType selectedCategoryType = CategoryType.expense; // 默认选中“支出”
-  int selectedTabIndex = 0; // 默认选中“月”标签
 
   final List<Map<String, dynamic>> expenditureData = [
     {'date': '1', 'value': 0.0},
@@ -30,10 +29,9 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
   final List<Map<String, dynamic>> rankingData = [
     {'name': '其他耗材成本', 'percentage': 100.00, 'amount': 22.00},
   ];
-
-  void onTabSelected(int index) {
+  void onSelected(CategoryType value) {
     setState(() {
-      selectedTabIndex = index;
+      selectedCategoryType = value;
     });
   }
 
@@ -55,12 +53,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                                   .replaceAll(RegExp(r"^\w+."), ''))
                               .tr()))
                       .toList(),
-              onSelected: (value) {
-                // 处理选项选择
-                setState(() {
-                  selectedCategoryType = value;
-                });
-              },
+              onSelected: onSelected,
               child: SizedBox(
                 width: 80,
                 child:
@@ -75,7 +68,11 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
           backgroundColor: Colors.transparent,
         ),
         body: Column(children: [
-          const HeaderWidget(),
+          HeaderWidget(
+            onDate: (selected) {
+              print(selected);
+            }
+          ),
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(16.0),
@@ -116,7 +113,8 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
 /// 顶部日期选择栏
 class HeaderWidget extends StatefulWidget {
-  const HeaderWidget({super.key});
+  final void Function((String, String, int) selected)? onDate;
+  const HeaderWidget({ super.key, this.onDate });
   @override
   _HeaderWidgetState createState() => _HeaderWidgetState();
 }
@@ -138,7 +136,8 @@ class _HeaderWidgetState extends State<HeaderWidget> {
   List<String> get dateStringItems =>
       dateItems.map((e) => "${e.$3}${tabs[selectedTabIndex]}").toList();
   void onSelectDate(int index) {
-    print(index);
+    var selected = dateItems[index];
+    widget.onDate?.call((selected.$1, selected.$2, selectedTabIndex));
   }
 
   /// 选择月份
@@ -187,10 +186,18 @@ class _HeaderWidgetState extends State<HeaderWidget> {
         {
           var list = getWeeksOfMonth(selectedDate);
           setState(() {
+            /// 先设置为0，不然可能超限
+            selectedIndex = 0;
             dateItems = list;
             selectedTabIndex = type;
-            selectedIndex = list.length - 1;
           });
+          // 延迟五百毫米厚执行
+          Future.delayed(const Duration(milliseconds: 200), () {
+            setState(() {
+              selectedIndex = list.length - 1;
+            });
+          });
+        
         }
     }
   }

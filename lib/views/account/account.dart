@@ -88,7 +88,7 @@ class _DataContentState extends State<_DataContent> {
       totalIncome += income;
       totalExpense += expense;
       totalBalance += balance;
-      list.add( _DataItem(month: '${select.month}月', income: income, expense: expense, balance: balance));
+      list.add( _DataItem(month: '${select.month}', income: income, expense: expense, balance: balance));
     }
     setState(() {
       data = list;
