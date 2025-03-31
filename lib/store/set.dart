@@ -46,3 +46,16 @@ class SafeTopAreaHeight extends Notifier<double> {
   }
 }
 final safeTopAreaHeightProvider = NotifierProvider<SafeTopAreaHeight, double>(() => SafeTopAreaHeight());
+
+/// 首页需要刷新数据
+@riverpod
+class RefreshHome extends Notifier<bool> {
+  // 重写此方法返回Notifier的初始状态
+  @override
+  bool build() => false;
+  /// 变更内容
+  void update() {
+    state = !state;
+  }
+}
+final refreshHomeProvider = NotifierProvider<RefreshHome, bool>(() => RefreshHome());

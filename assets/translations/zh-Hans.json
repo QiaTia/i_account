@@ -9,7 +9,7 @@
   "secondPage": "这里上第二页",
   "help": "帮助",
   "settings": "设置",
-  "conirmExitApp": "再次按下以关闭应用程序！",
+  "confirmExitApp": "再次按下以关闭应用程序！",
   "expense": "支出",
   "income": "收入",
   "mini.dark": "深色",
@@ -36,5 +36,6 @@
   "WeekName.thursday": "周四",
   "WeekName.friday": "周五",
   "WeekName.saturday": "周六",
-  "WeekName.sunday": "周日"
+  "WeekName.sunday": "周日",
+  "modal.ok": "好的"
 }

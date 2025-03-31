@@ -9,7 +9,7 @@
   "secondPage": "this is the second Page",
   "help": "help",
   "settings": "Settings",
-  "conirmExitApp": "Press again to close the application!",
+  "confirmExitApp": "Press again to close the application!",
   "expense": "Expense",
   "income": "Income",
   "mini.dark": "Dark",
@@ -36,5 +36,6 @@
   "WeekName.thursday": "Thursday",
   "WeekName.friday": "Friday",
   "WeekName.saturday": "Saturday",
-  "WeekName.sunday": "Sunday"
+  "WeekName.sunday": "Sunday",
+  "modal.ok": "OK"
 }

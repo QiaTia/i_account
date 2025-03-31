@@ -204,7 +204,7 @@ class _RecordListState extends State<RecordList> {
                   : IconData(int.parse(it.icon),
                       fontFamily: Icons.abc.fontFamily)),
             ),
-            title: Text('${it.amount}'),
+            title: Text(it.amount.toStringAsFixed(2)),
             subtitle: Text(it.billDate
                 .toIso8601String()
                 .replaceAll('T', ' ')

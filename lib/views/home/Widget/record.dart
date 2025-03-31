@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:i_account/model/record.dart';
-
 import 'package:i_account/store/sql.dart';
+import 'package:i_account/utils/date.dart';
+import './datePicker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/store/set.dart';
 
 /// 打开记录弹窗
 void showRecordPopup(BuildContext context) {
@@ -119,7 +122,7 @@ class _CustomPopupState extends State<CustomPopup> {
                 onTap: () {
                   onItemTap(items[index]);
                 },
-                child: RecordItem(item: items[index])),
+                child: RecordItemWidget(item: items[index])),
           ))
         ]),
       ),
@@ -128,10 +131,10 @@ class _CustomPopupState extends State<CustomPopup> {
 }
 
 /// 项目
-class RecordItem extends StatelessWidget {
+class RecordItemWidget extends StatelessWidget {
   final CategoryItemProvider item;
 
-  const RecordItem({super.key, required this.item});
+  const RecordItemWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -165,13 +168,24 @@ class RecordPopup extends StatefulWidget {
 
   /// 分类id
   final int categoryId;
+
+  /// 传入此参数代表是修改记录
+  final RecordItem? record;
+  /// 完成时回调
+  final Function? onDone;
   const RecordPopup(
-      {super.key, required this.categoryName, required this.categoryId});
+      {super.key,
+      required this.categoryName,
+      required this.categoryId,
+      this.onDone,
+      this.record});
   @override
   State<RecordPopup> createState() => _RecordPopupState();
 }
 
 class _RecordPopupState extends State<RecordPopup> {
+  final _formKey = GlobalKey<FormState>();
+
   /// 备注
   String remark = '';
 
@@ -185,90 +199,155 @@ class _RecordPopupState extends State<RecordPopup> {
   void onCancel() {
     Navigator.pop(context);
   }
+  Function? onDone;
+
+  Future<void> onSelectDate() async {
+    var respond = await showYearMonthPicker(
+        context: context, value: date, fields: const ['year', 'month', 'day']);
+    if (respond != null) {
+      setState(() {
+        date = respond;
+      });
+    }
+  }
 
   /// 确认
-  void onConfirm() {
-    print('$remark $amount $date');
+  void onConfirm() async {
+    RecordItem item = RecordItem(
+      remark: remark,
+      amount: double.parse(amount),
+      billDate: date,
+      categoryId: widget.categoryId,
+      icon: '', // Provide a valid icon value
+      id: widget.record?.id ?? 0, // Provide a valid id value
+      name: widget.categoryName, // Provide a valid name value
+      categoryType: CategoryType.expense, // Provide a valid categoryType value
+    );
+    if (widget.record != null) {
+      /// 编辑模式
+      await DBManager().updateRecord(item);
+    } else {
+      print('新增模式');
+      await DBManager().insertRecord(item);
+    }
+    widget.onDone?.call();
+    onDone?.call();
+    /// 关闭两个弹窗
+    onCancel();
+    // widget.onDone?.call();
     onCancel();
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.record != null) {
+      setState(() {
+        remark = widget.record!.remark;
+        amount = widget.record!.amount.toString();
+        date = widget.record!.billDate;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer(builder: (context, ref, child) {
+      onDone = () {
+        ref.read(refreshHomeProvider.notifier).update();
+      };
+      return Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12,
             children: [
-              Text(
-                widget.categoryName,
-                style: const TextStyle(
-                    fontSize: 18.0, fontWeight: FontWeight.bold),
-              ),
-              const Text(
-                '2025-03-26',
-                style: TextStyle(fontSize: 16.0),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 40.0, bottom: 12),
-            child: TextField(
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-              ],
-              textAlign: TextAlign.center,
-              focusNode: FocusNode(),
-              onChanged: (value) => amount = value,
-              decoration: const InputDecoration(
-                hintText: '请输入成本',
-              ),
-            ),
-          ),
-          TextField(
-            onChanged: (value) => remark = value,
-            decoration: const InputDecoration(
-              hintText: '项目描述:',
-              hintStyle: TextStyle(fontSize: 14),
-              border: InputBorder.none,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: onCancel,
-                child: const Text('取消'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.categoryName,
+                    style: const TextStyle(
+                        fontSize: 18.0, fontWeight: FontWeight.bold),
+                  ),
+                  InkWell(
+                    onTap: onSelectDate,
+                    child: Row(spacing: 2, children: [
+                      Text(
+                        formatDate(date),
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                      const Icon(Icons.arrow_drop_down),
+                    ]),
+                  )
+                ],
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: FilledButton(
-                  onPressed: onConfirm,
-                  child: const Text('确定'),
+                padding: const EdgeInsets.only(top: 40.0),
+                child: TextFormField(
+                  initialValue: amount,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}')),
+                  ],
+                  textAlign: TextAlign.center,
+                  focusNode: FocusNode(),
+                  onChanged: (value) => amount = value,
+                  decoration: const InputDecoration(
+                    hintText: '请输入成本',
+                  ),
                 ),
-              )
+              ),
+              TextFormField(
+                initialValue: remark,
+                onChanged: (value) => remark = value,
+                decoration: const InputDecoration(
+                  hintText: '项目描述:',
+                  hintStyle: TextStyle(fontSize: 14),
+                  border: InputBorder.none,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                spacing: 20,
+                children: [
+                  TextButton(
+                    onPressed: onCancel,
+                    child: const Text('取消'),
+                  ),
+                  FilledButton(
+                    onPressed: onConfirm,
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
-    );
+        ));
+    });
   }
 }
 
 /// 显示记录弹窗
-void showRecordDialog(
-    {required BuildContext context, required CategoryItemProvider item}) {
-  showDialog(
+Future showRecordDialog(
+    {required BuildContext context,
+    RecordItem? record,
+    Function? onDone,
+    CategoryItemProvider? item}) {
+  return showDialog(
     context: context,
     builder: (BuildContext context) {
       return Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        child: RecordPopup(categoryName: item.name, categoryId: item.id ?? 0),
+        child: RecordPopup(
+            categoryName: item?.name ?? record?.name ?? '',
+            categoryId: item?.id ?? record?.categoryId ?? 0,
+            onDone: onDone,
+            record: record),
       );
     },
   );

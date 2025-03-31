@@ -58,7 +58,7 @@ class MyHomePage extends ConsumerWidget {
           now.difference(currentBackPressTime!) > const Duration(seconds: 4)) {
         currentBackPressTime = now;
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: const Text('conirmExitApp').tr()));
+            .showSnackBar(SnackBar(content: const Text('confirmExitApp').tr()));
         return false;
       }
       // 退出请求有效
@@ -238,7 +238,11 @@ class _NavDataContainer extends State<NavDataContainer> {
           getTotalData(respond);
         }
       }
-
+      // 监听刷新状态
+      ref.listen(refreshHomeProvider, (old, newProvider) {
+        print('$old -> $newProvider');
+        getTotalData(select);
+      });
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
