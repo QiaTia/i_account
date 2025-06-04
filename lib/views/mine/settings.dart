@@ -1,56 +1,89 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:i_account/common/show_modal_bottom_detail/show_modal_bottom_detail.dart';
 import 'package:i_account/store/set.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../common/Widget/base.dart';
-// import 'package:my_app/common/dashboard.dart';
-// import 'package:my_app/common/global.dart';
-// import 'package:get/get.dart';
+import 'package:i_account/store/theme.dart';
+import 'package:i_account/utils/modal.dart';
+import 'package:i_account/views/home/home.dart';
+import 'package:i_account/views/mine/widget/change_theme.dart';
 
-class SettingsPage extends StatelessWidget {
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../common/widget/base.dart';
+
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context, ref) {
+    // final ThemeMode themeMode = ref.watch(currentThemeModeProvider);
+    // final MultipleThemeMode theme = ref.watch(currentThemeProvider);
+    final nav = Navigator.of(context);
+    final themeModeProvider = ref.read(currentThemeModeProvider.notifier);
     /// 操作内容
     final list = [
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
-          title: 'mini.email'.tr(),
+          title: 'mine.email'.tr(),
           content: '***@***.com'),
       _SettingItem(
-          icon: 'assets/icon/ic_about.png',
-          title: 'mini.phone'.tr(),
-          content: '181****1234'),
+        icon: 'assets/icon/ic_about.png',
+        title: 'mine.changePassword'.tr(),
+        action: () {
+          nav.pushNamed('/2048');
+        }
+      ),
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
-          title: 'mini.changePassword'.tr(),
+          title: 'mine.theme_settings'.tr(),
           action: () {
-            Navigator.of(context).pushNamed('/2048');
-          }),
+            showModalBottomDetail(
+              context: context,
+              child: const ChangeThemeWidget(),
+              isDark: themeModeProvider.isDarkMode,
+            );
+            // themeModeProvider.setTheme(
+            //     themeModeProvider.isDarkMode
+            //         ? ThemeMode.light
+            //         : ThemeMode.dark);
+          },
+        ),
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
-          title: 'mini.language_settings'.tr(),
-          action: () {
+          title: 'mine.language_settings'.tr(),
+          action: () async {
             // Get.toNamed('/sys/language');
             context.setLocale(context.locale.languageCode == 'zh'
                 ? const Locale('en')
                 : startLocale);
+            await showModal(context, '完成设置，应用即将重载！');
+            nav.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const MyHomePage()), (_) => false);
           }),
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
-          title: 'mini.privacy'.tr(),
+          title: 'mine.privacy'.tr(),
           action: () {
             // toWebView('https://h5.bwcj.com/bwgf/doc/privacy');
           }),
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
-          title: 'mini.about_us'.tr(),
+          title: 'mine.about_us'.tr(),
+          action: () async {
+            PackageInfo packageInfo = await PackageInfo.fromPlatform();
+            showAboutDialog(
+              context: context,
+              applicationName: packageInfo.appName,
+              applicationVersion: packageInfo.version,
+              // applicationIcon: const Icon(Icons.account_balance_wallet),
+              applicationLegalese: 'Copyright © 2025 Tia',
+            );
+          },
           path: '/sys/about'),
-      _SettingItem(
-          icon: 'assets/icon/ic_about.png',
-          title: 'mini.other_settings'.tr(),
-          path: '/sys/setting'),
+      // _SettingItem(
+      //     icon: 'assets/icon/ic_about.png',
+      //     title: 'mine.other_settings'.tr(),
+      //     path: '/sys/setting'),
     ];
     return Scaffold(
         // backgroundColor: const Color(0xFFF9FAFB),
@@ -77,7 +110,7 @@ class SettingsPage extends StatelessWidget {
                           //   middleText: 'Confirm ?');
                         },
                         child: ListItem(
-                            name: 'mini.exitAccount'.tr(), borderRadius: 8)));
+                            name: 'mine.exitAccount'.tr(), borderRadius: 8)));
               }
               var item = list[index];
               return InkWell(

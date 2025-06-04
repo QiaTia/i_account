@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/router/router.dart';
+import 'package:i_account/store/theme.dart';
 import 'package:i_account/views/home/home.dart';
 // import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -22,24 +23,27 @@ void main() async {
           child: const MyApp())));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(context, ref) {
+    final themeMode = ref.watch(currentThemeModeProvider);
+    final theme = ref.watch(currentThemeProvider);
     return MaterialApp(
-      // title: 'appTitle'.tr(),
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blueGrey, primary: Colors.blueGrey),
-          hintColor: const Color(0xFF132033),
-          useMaterial3: true,
-          // 去除TabBar底部线条
-          tabBarTheme: const TabBarTheme(dividerColor: Colors.transparent)),
+      themeMode: themeMode,
+      theme: theme.state.lightTheme(),
+      darkTheme: theme.state.darkTheme(),
+      //  ThemeData(
+      //     colorScheme: ColorScheme.fromSeed(
+      //         seedColor: Colors.blueGrey, primary: Colors.blueGrey),
+      //     hintColor: const Color(0xFF132033),
+      //     // 去除TabBar底部线条
+      //     tabBarTheme: const TabBarTheme(dividerColor: Colors.transparent)),
       debugShowCheckedModeBanner: false,
       routes: routes,
       home: const MyHomePage(),

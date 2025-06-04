@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 const startLocale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
@@ -21,8 +20,8 @@ class ClickCount extends Notifier<int> {
 
 final clickCountProvider = NotifierProvider<ClickCount, int>(() => ClickCount());
 
-
 @riverpod
+/// 选择日期
 class SelectDate extends Notifier<DateTime> {
   // 重写此方法返回Notifier的初始状态
   @override
@@ -36,6 +35,7 @@ class SelectDate extends Notifier<DateTime> {
 final selectDateProvider = NotifierProvider<SelectDate, DateTime>(() => SelectDate());
 
 @riverpod
+/// 顶部状态栏高度
 class SafeTopAreaHeight extends Notifier<double> {
   // 重写此方法返回Notifier的初始状态
   @override
@@ -47,8 +47,8 @@ class SafeTopAreaHeight extends Notifier<double> {
 }
 final safeTopAreaHeightProvider = NotifierProvider<SafeTopAreaHeight, double>(() => SafeTopAreaHeight());
 
-/// 首页需要刷新数据
 @riverpod
+/// 首页需要刷新数据
 class RefreshHome extends Notifier<bool> {
   // 重写此方法返回Notifier的初始状态
   @override

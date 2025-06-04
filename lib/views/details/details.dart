@@ -2,13 +2,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
 import 'package:i_account/views/details/detail.dart';
 import '../../store/set.dart';
 
 /// 排序key内容
-const _sortKeyList = ['按金额', '按时间'];
+const _sortKeyList = ["account.rank.time", "account.rank.amount"];
 
 class DetailPage extends StatefulWidget {
   final int type;
@@ -21,7 +22,7 @@ class DetailPage extends StatefulWidget {
 class _DetailPageState extends State<DetailPage> {
   /// 排序方式: 0: 按金额 1: 按时间
   int sortMode = 0;
-
+  /// 选择排序方式
   void onSelected(String selected) {
     print('Selected: $selected');
     setState(() {
@@ -30,9 +31,9 @@ class _DetailPageState extends State<DetailPage> {
   }
   @override
   Widget build(context) {
+    final bgCardColor = Theme.of(context).cardColor;
     final categoryType = CategoryType.fromInt(widget.type);
-    final categoryStr =
-        categoryType.toString().replaceAll(RegExp(r"^\w+."), '').tr();
+    final categoryStr = categoryType.tr;
     return Consumer(builder: (context, ref, child) {
       var selectDate = ref.watch(selectDateProvider);
       return Scaffold(
@@ -44,10 +45,10 @@ class _DetailPageState extends State<DetailPage> {
             Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: const BoxDecoration(color: Colors.white),
+                decoration: BoxDecoration(color: bgCardColor),
                 child: Column(
                   children: [
-                    Text('本月总$categoryStr',
+                    Text('${"account.month.allAmount".tr()} $categoryStr',
                         style: Theme.of(context).textTheme.labelMedium),
                     _TotalWidget(selectDate: selectDate, type: categoryType)
                     // Text(total.toString(), style: Theme.of(context).textTheme.titleLarge),
@@ -57,11 +58,11 @@ class _DetailPageState extends State<DetailPage> {
             Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(color: Colors.white),
+                decoration: BoxDecoration(color: bgCardColor),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('单笔$categoryStr排行',
+                      Text('$categoryStr ${"account.month.rankings".tr()}',
                           style: Theme.of(context).textTheme.titleMedium),
                       ButtonGroupWidget(
                         items: _sortKeyList,
@@ -70,7 +71,7 @@ class _DetailPageState extends State<DetailPage> {
                     ])),
             Expanded(
               child: DecoratedBox(
-                  decoration: const BoxDecoration(color: Colors.white),
+                  decoration: BoxDecoration(color: bgCardColor),
                   child:
                       RecordList(selectDate: selectDate, type: categoryType, sortMode: sortMode)),
             ),
@@ -140,7 +141,7 @@ class _RecordListState extends State<RecordList> {
     }
     db
       .selectRecordList(widget.type, currentPage++, widget.selectDate.year,
-          widget.selectDate.month, widget.sortMode == 0 ? 'amount' : 'bill_date' )
+          widget.selectDate.month, widget.sortMode == 0 ? 'bill_date' : 'amount' )
       .then((result) {
         if (result.pageSize * currentPage >= result.total) {
           hasNextPage = false;
@@ -198,7 +199,7 @@ class _RecordListState extends State<RecordList> {
           return ListTile(
             onTap: () { goDetail(it); },
             leading: CircleAvatar(
-              backgroundColor: Colors.grey[300],
+              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.16),
               child: Icon(it.icon.isEmpty
                   ? Icons.wallet_giftcard
                   : IconData(int.parse(it.icon),
@@ -274,11 +275,11 @@ class _ButtonGroupWidgetState extends State<ButtonGroupWidget>
       runSpacing: 4.0,
       children: widget.items.map((item) {
         bool isSelected = item == _currentSelection;
-        Color backgroundColor =
-            isSelected ? Colors.white : const Color(0xFFF7F7F7);
+        var smallTextColor = Theme.of(context).textTheme.bodySmall?.color ?? const Color(0xFF999999);
+        Color backgroundColor = Theme.of(context).cardColor;
         Color textColor = isSelected
             ? Theme.of(context).primaryColor
-            : const Color(0xFF999999);
+            : smallTextColor;
 
         return ScaleTransition(
           scale: Tween(begin: 0.9, end: 1.0).animate(CurvedAnimation(
@@ -302,14 +303,12 @@ class _ButtonGroupWidgetState extends State<ButtonGroupWidget>
                 color: backgroundColor,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: isSelected
-                      ? Theme.of(context).primaryColor
-                      : Colors.transparent,
+                  color: textColor.withValues(alpha: 0.64),
                   width: 1.0,
                 ),
               ),
               child: Text(
-                item,
+                item.tr(),
                 style: TextStyle(
                   color: textColor,
                   fontSize: 14,

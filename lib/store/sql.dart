@@ -1,3 +1,4 @@
+import 'package:i_account/utils/date.dart';
 import 'package:sqflite/sqflite.dart';
 import '../model/record.dart';
 
@@ -234,6 +235,57 @@ class DBManager {
       return '0.00';
     }
   }
+  
+  /// 图表页面按照条件查询记录
+  Future<(List<CategoryStatistics>, Map<String, double>, double)> selectRecordByCondition(String startDate, String endDate, [CategoryType type = CategoryType.expense, int group = 0]) async {
+    //  ...
+    String data = "SELECT `category_id`, `id`, `bill_date`, `amount` FROM `records` WHERE category_type = ? AND bill_date >= ? AND bill_date <= ? AND `is_deleted` = 0 ORDER BY `bill_date` ASC";
+    List<Object> query = [type.state, startDate, endDate];
+    var result = await db.rawQuery(data, query).catchError((err) {
+      print('err:$err');
+      throw err;
+    });
+    /// 按日期归档
+    Map<String, double> groupedData = {};
+    /// 按分类归档
+    Map<int, double> categoryData = {};
+    ///  总计
+    double totalAmount = 0.0;
+    // 初始化日期数据
+    var dateStrList = fillRangeData(DateTime.parse(startDate), DateTime.parse(endDate));
+    for (var it in dateStrList) {
+      groupedData[it] = 0.0; // 初始化日期数据
+    }
+    /// 处理查询结果
+    for (var it in result) {
+      var amount = it['amount'] as double;
+      var itDate = DateTime.parse(it['bill_date'] as String);
+      int itCategoryId = it['category_id'] as int;
+      //  按分类归档
+      double countCategoryAmount = categoryData[itCategoryId] ?? 0;
+      categoryData[itCategoryId] = countCategoryAmount + amount;
+      // 按日期归档
+      var billDate = formatDate(itDate, showLen: group == 2 ? 2: 1);
+      double countDateAmount = groupedData[billDate] ?? 0;
+      groupedData[billDate] = countDateAmount + amount;
+      totalAmount += amount;
+    }
+
+    List<Map<String, dynamic>> queryCategoryData = await db.rawQuery('SELECT * FROM `category` WHERE id IN (${categoryData.keys.join(',')})');
+    var categoryStatistics = queryCategoryData.map((it)  {
+      var item = CategoryStatistics(
+        id: it['id'],
+        name: it['name'],
+        type: CategoryType.fromInt(it['type']),
+        icon: it['icon'],
+        totalAmount: categoryData[(it['id'] as int)] ?? 0,
+      );
+      return item;
+    }).toList();
+    
+    return (categoryStatistics, groupedData, totalAmount);
+  }
+
   /// TODO: 查询记录条数
   Future<int> selectRecordCount(String dreamId) async {
     String data = "SELECT COUNT(*) FROM `records`";

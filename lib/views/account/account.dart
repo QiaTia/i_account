@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
@@ -22,23 +23,23 @@ class _BalanceScreen extends State<BalanceScreen> {
           appBar: AppBar(
             title: Text(selectDate.year.toString()),
             backgroundColor: Colors.transparent,
-            actions: [
-              PopupMenuButton<int>(
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 1,
-                    child: Text('选项1'),
-                  ),
-                  const PopupMenuItem(
-                    value: 2,
-                    child: Text('选项2'),
-                  ),
-                ],
-                onSelected: (value) {
-                  // 处理选项选择
-                },
-              ),
-            ],
+            // actions: [
+            //   PopupMenuButton<int>(
+            //     itemBuilder: (context) => [
+            //       const PopupMenuItem(
+            //         value: 1,
+            //         child: Text('选项1'),
+            //       ),
+            //       const PopupMenuItem(
+            //         value: 2,
+            //         child: Text('选项2'),
+            //       ),
+            //     ],
+            //     onSelected: (value) {
+            //       // 处理选项选择
+            //     },
+            //   ),
+            // ],
           ),
           body: Stack(children: [
             const _PageTopBgBar(),
@@ -126,7 +127,7 @@ class _DataContentState extends State<_DataContent> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Text('结余'),
+            Text('account.surplus'.tr()),
             const SizedBox(height: 8.0),
             Text(formatNumber(totalMap.balance),
                 style: const TextStyle(fontSize: 32)),
@@ -134,9 +135,9 @@ class _DataContentState extends State<_DataContent> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text('收入 ${formatNumber(totalMap.income)}'),
+                Text('${'income'.tr()} ${formatNumber(totalMap.income)}'),
                 const VerticalDivider(color: Colors.white),
-                Text('支出${formatNumber(totalMap.expense)}'),
+                Text('${'expense'.tr()} ${formatNumber(totalMap.expense)}'),
               ],
             ),
           ],
@@ -145,30 +146,36 @@ class _DataContentState extends State<_DataContent> {
       Expanded(
           child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        decoration: const BoxDecoration(color: Colors.white),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(color: Theme.of(context).cardColor),
         child: SingleChildScrollView(
           child: DataTable(
-            columns: const <DataColumn>[
+            columnSpacing: 0,
+            columns:  <DataColumn>[
               DataColumn(
-                  columnWidth: IntrinsicColumnWidth(flex: 0.4),
-                  label: Text('月份')),
+                  columnWidth: const IntrinsicColumnWidth(flex: 0.4),
+                  label: Text('account.month'.tr())),
               DataColumn(
-                  columnWidth: IntrinsicColumnWidth(flex: 1),
-                  label: Text('收入')),
+                  // numeric: true,
+                  headingRowAlignment: MainAxisAlignment.center,
+                  columnWidth: const IntrinsicColumnWidth(flex: 1),
+                  label: Text('income'.tr())),
               DataColumn(
-                  columnWidth: IntrinsicColumnWidth(flex: 1),
-                  label: Text('支出')),
+                  // numeric: true,
+                  headingRowAlignment: MainAxisAlignment.center,
+                  columnWidth: const IntrinsicColumnWidth(flex: 1),
+                  label: Text('expense'.tr())),
               DataColumn(
-                  columnWidth: IntrinsicColumnWidth(flex: 1),
-                  label: Text('结余')),
+                  numeric: true,
+                  columnWidth: const IntrinsicColumnWidth(flex: 1),
+                  label: Text('account.surplus'.tr())),
             ],
             rows: List.generate(data.length, (index) {
               return DataRow(
                 cells: <DataCell>[
                   DataCell(Text(data[index].month!)),
-                  DataCell(Text(formatNumber(data[index].income))),
-                  DataCell(Text(formatNumber(data[index].expense))),
+                  DataCell(Center(child: Text(formatNumber(data[index].income)))),
+                  DataCell(Center(child: Text(formatNumber(data[index].expense)))),
                   DataCell(Text(formatNumber(data[index].balance))),
                 ],
               );

@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-void showModal(BuildContext context, String content,
+Future<T?> showModal<T>(BuildContext context, String content,
     [String title = 'alert']) async {
-  showDialog(
+  return showDialog<T>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(title),

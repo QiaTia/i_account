@@ -126,11 +126,11 @@ class _ExpenseDetailScreen extends State<ExpenseDetailScreen> {
           children: [
             TextButton(
               onPressed: onEdit,
-              child: const Text('编辑', style: TextStyle(color: Colors.black)),
+              child: Text("modal.edit".tr(), style: TextStyle(color: Theme.of(context).hintColor)),
             ),
             TextButton(
               onPressed: _showDeleteConfirmationDialog,
-              child: const Text('删除', style: TextStyle(color: Colors.red)),
+              child: Text("modal.delete".tr(), style: const TextStyle(color: Colors.red)),
             ),
           ],
         ),
@@ -155,22 +155,19 @@ class _ExpenseDetailScreen extends State<ExpenseDetailScreen> {
           ])),
       Expanded(
           child: Container(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDetailRow(
-                '类型',
-                record.categoryType
-                    .toString()
-                    .replaceAll(RegExp(r"^\w+."), '')
-                    .tr()),
-            _buildDetailRow('金额', record.amount.toStringAsFixed(2)),
-            _buildDetailRow('日期',
+                "account.category",
+                record.categoryType.tr),
+            _buildDetailRow('account.amount', record.amount.toStringAsFixed(2)),
+            _buildDetailRow('account.date',
                 '${DateFormat('yyyy/MM/dd').format(record.billDate)} ${WeekName.fromInt(record.billDate.weekday).toString().tr()}'),
-            _buildDetailRow('支付渠道', record.payName ?? ''),
-            _buildDetailRow('备注', record.remark),
+            _buildDetailRow('account.channel', record.payName ?? ''),
+            _buildDetailRow('account.remark', record.remark),
             record.originInfo.isEmpty ? const SizedBox() : _buildDetailRow('导入原始信息', record.originInfo),
           ],
         ),
@@ -181,7 +178,7 @@ class _ExpenseDetailScreen extends State<ExpenseDetailScreen> {
   Widget _buildDetailRow(String label, String value) {
     return InkWell(
       onTap: () {
-        showModal(context, value, label);
+        showModal(context, value, label.tr());
         // 点击事件
       },
       child: Container(
@@ -189,7 +186,7 @@ class _ExpenseDetailScreen extends State<ExpenseDetailScreen> {
             border: Border(bottom: BorderSide(color: Colors.grey[300]!))),
         padding: const EdgeInsets.symmetric(vertical: 12.0),
         child: Row(children: [
-          Text(label, style: TextStyle(fontSize: 16, color: Colors.grey[700]!)),
+          Text(label.tr(), style: TextStyle(fontSize: 16, color: Colors.grey[700]!)),
           const SizedBox(width: 16),
           Expanded(
               child: Text(value,

@@ -50,10 +50,10 @@ class MyHomePage extends ConsumerWidget {
     });
     
     DateTime? currentBackPressTime;
-    // 返回键退出
+    /// 返回键退出
     bool closeOnConfirm() {
       DateTime now = DateTime.now();
-      // 物理键，两次间隔大于4秒, 退出请求无效
+      /// 两次间隔大于4秒, 退出请求无效
       if (currentBackPressTime == null ||
           now.difference(currentBackPressTime!) > const Duration(seconds: 4)) {
         currentBackPressTime = now;
@@ -61,21 +61,19 @@ class MyHomePage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: const Text('confirmExitApp').tr()));
         return false;
       }
-      // 退出请求有效
+      /// 退出请求有效
       currentBackPressTime = null;
       return true;
     }
+    void onPopInvokedWithResult(bool didPop, Object? result) {
+      if (closeOnConfirm()) {
+        // 系统级别导航栈 退出程序
+        SystemNavigator.pop();
+      }
+    }
     return PopScope(
         canPop: false,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) {
-            return;
-          }
-          if (closeOnConfirm()) {
-            // 系统级别导航栈 退出程序
-            SystemNavigator.pop();
-          }
-        },
+        onPopInvokedWithResult: onPopInvokedWithResult,
         child: Scaffold(
           appBar: appBar,
           body: Stack(children: [
@@ -104,12 +102,13 @@ class MyHomePage extends ConsumerWidget {
                   const NavContainer(),
                   const AnimatedText(),
                   FilledButton(
-                      onPressed: () {
-                        // navigator.pushNamed("/word");
-                        // Navigator.of(context).pushNamed("/account/new");
-                        onTap();
-                      },
-                      child: const Text("mini.about").tr()),
+                    onPressed: () {
+                      // navigator.pushNamed("/word");
+                      // Navigator.of(context).pushNamed("/account/new");
+                      // onTap();
+                      ref.read(clickCountProvider.notifier).increment();
+                    },
+                    child: const Text("mine.about").tr()),
                 ],
               ),
             )
@@ -164,10 +163,10 @@ class NavContainer extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.all(18),
         child: Container(
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-              boxShadow: [
+          decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              boxShadow: const [
                 BoxShadow(
                     color: Color(0x0D000000),
                     offset: Offset(0, 1),

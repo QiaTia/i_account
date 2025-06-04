@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// 收支分类枚举: 1支出 2收入
 enum CategoryType {
@@ -8,6 +8,11 @@ enum CategoryType {
   income(2);
 
   final int state;
+
+  String get tr {
+    return toString().replaceAll(RegExp(r"^\w+."), '').tr();
+  }
+  
   // 可以添加具体的枚举值
   const CategoryType(this.state);
 
@@ -189,4 +194,19 @@ class CategoryItemProvider {
       'updated_at': updatedAt != null ? DateFormat('yyyy-MM-dd').format(updatedAt!) : null,
     };
   }
+}
+
+/// 按分类统计数据
+class CategoryStatistics extends CategoryItemProvider {
+  /// 统计金额
+  final double totalAmount;
+
+  CategoryStatistics({
+    required super.id,
+    required super.name,
+    required super.type,
+    required super.icon,
+    required this.totalAmount,
+    super.sortNum = 0,
+  });
 }

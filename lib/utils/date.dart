@@ -77,3 +77,24 @@ List<(String, String, int)> getYearlyRanges(DateTime inputDate) {
   }
   return ranges;
 }
+
+/// 填充范围内的数据
+List<String> fillRangeData(DateTime start, DateTime end) {
+  List<String> list = [];
+  bool isMonth = end.difference(start).inDays >= 31; // 判断是否是按月填充
+  if (isMonth) {
+    // 按月填充
+    DateTime current = DateTime(start.year, start.month, 1);
+    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
+      list.add(formatDate(current, showLen: 2));
+      current = DateTime(current.year, current.month + 1, 1);
+    }
+    return list;
+  }
+  DateTime current = start;
+  while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
+    list.add(formatDate(current));
+    current = current.add(const Duration(days: 1));
+  }
+  return list;
+}

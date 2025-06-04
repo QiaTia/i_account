@@ -1,12 +1,13 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/set.dart';
+import 'package:i_account/store/sql.dart';
 import 'package:i_account/utils/date.dart';
 import 'package:i_account/views/home/Widget/datePicker.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+/// 统计图表页面
 class ExpenditureScreen extends StatefulWidget {
   const ExpenditureScreen({super.key});
 
@@ -15,62 +16,45 @@ class ExpenditureScreen extends StatefulWidget {
 }
 
 class _ExpenditureScreenState extends State<ExpenditureScreen> {
-  CategoryType selectedCategoryType = CategoryType.expense; // 默认选中“支出”
-
-  final List<Map<String, dynamic>> expenditureData = [
-    {'date': '1', 'value': 0.0},
-    {'date': '2', 'value': 0.0},
-    {'date': '3', 'value': 0.0},
-    {'date': '4', 'value': 0.0},
-    {'date': '5', 'value': 22.0},
-    {'date': '6', 'value': 0.0},
-  ];
-
-  final List<Map<String, dynamic>> rankingData = [
-    {'name': '其他耗材成本', 'percentage': 100.00, 'amount': 22.00},
-  ];
+  final DBManager $dbManager = DBManager();
+  /// 默认选中“支出”
+  CategoryType selectedCategoryType = CategoryType.expense; 
+  double totalAmount = 0.0;
+  /// 按日期归档数据
+  Map<String, double> groupedData = {};
+  /// 排行榜数据
+  List<CategoryStatistics> rankingData = [];
+  /// 选择类别
   void onSelected(CategoryType value) {
     setState(() {
       selectedCategoryType = value;
     });
   }
 
+  /// 初始化数据
+  void initData((String, String, int) selected) {
+    $dbManager.selectRecordByCondition(selected.$1, selected.$2, selectedCategoryType,selected.$3)
+      .then((result) {
+        // 处理查询结果
+        setState(() {
+          rankingData = result.$1;
+          totalAmount = result.$3;
+          groupedData = result.$2;
+        });
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: PopupMenuButton<CategoryType>(
-              // icon: const Icon(Icons.arrow_drop_down),
-              position: PopupMenuPosition.under,
-              itemBuilder: (context) => [
-                    CategoryType.income,
-                    CategoryType.expense
-                  ]
-                      .map((value) => PopupMenuItem(
-                          value: value,
-                          child: Text(value
-                                  .toString()
-                                  .replaceAll(RegExp(r"^\w+."), ''))
-                              .tr()))
-                      .toList(),
-              onSelected: onSelected,
-              child: SizedBox(
-                width: 80,
-                child:
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(selectedCategoryType
-                      .toString()
-                      .replaceAll(RegExp(r"^\w+."), '')
-                      .tr()),
-                  const Icon(Icons.arrow_drop_down)
-                ]),
-              )),
-          backgroundColor: Colors.transparent,
+        appBar: ExpenditureAppBar(
+          selectedCategoryType: selectedCategoryType,
+          onSelected: onSelected,
         ),
         body: Column(children: [
           HeaderWidget(
             onDate: (selected) {
-              print(selected);
+              initData(selected);
             }
           ),
           Container(
@@ -79,13 +63,14 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('总支出: 22.00'),
-                const Text('平均值: 3.67'),
+                Text('总支出: ${formatNumber(totalAmount)} 元',
+                    style: const TextStyle(fontSize: 18)),
+                Text('平均值: ${formatNumber(totalAmount / groupedData.length)} 元'),
                 const SizedBox(height: 16.0),
-                const SizedBox(
+                SizedBox(
                   height: 200,
                   width: double.infinity,
-                  child: LineChartWidget(data: [],)
+                  child: LineChartWidget(data: groupedData)
                 ),
                 const SizedBox(height: 16.0),
                 const Text('支出排行榜', style: TextStyle(fontSize: 18)),
@@ -93,14 +78,16 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                   shrinkWrap: true,
                   itemCount: rankingData.length,
                   itemBuilder: (context, index) {
+                    final item = rankingData[index];
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Colors.grey[300],
-                        child: const Icon(Icons.folder),
+                        child: Icon(IconData(int.parse(item.icon),
+                      fontFamily: Icons.abc.fontFamily)),
                       ),
-                      title: Text(rankingData[index]['name']),
-                      subtitle: Text('${rankingData[index]['percentage']}%'),
-                      trailing: Text(rankingData[index]['amount'].toString()),
+                      title: Text(item.name),
+                      subtitle: Text('${formatNumber(item.totalAmount / totalAmount * 100)} %'),
+                      trailing: Text('${formatNumber(item.totalAmount)} 元'),
                     );
                   },
                 ),
@@ -488,31 +475,32 @@ class _ButtonGroupWidgetState extends State<ButtonGroupWidget> {
   }
 }
 
+/// 折线图组件
 class LineChartWidget extends StatelessWidget {
-  final List<Map<String, dynamic>> data;
-
+  final Map<String, double> data;
+  List<(String, double)> get groupedData => data.keys.map((e) => (e, data[e]!)).toList();
   const LineChartWidget({super.key, required this.data});
 
-  FlTitlesData get titlesData2 => const FlTitlesData(
+  FlTitlesData get titlesData2 => FlTitlesData(
     bottomTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
         reservedSize: 32,
-        // interval: 2,
-        // getTitlesWidget: () => Text('hello'),
+        interval: 5,
+        getTitlesWidget:(value, meta) => Text(value.toInt() >= groupedData.length ? '' : groupedData[value.toInt()].$1),
       ),
     ),
-    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false), axisNameSize: 0),
-    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false), axisNameSize: 0),
-    leftTitles: AxisTitles(
-        sideTitles: SideTitles(
-      // getTitlesWidget: leftTitleWidgets,
-      showTitles: true,
-      interval: 3,
-      // reservedSize: 40,
-    )),
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false), axisNameSize: 0),
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false), axisNameSize: 0),
+    // leftTitles: const AxisTitles(
+    //     sideTitles: SideTitles(
+    //   // getTitlesWidget: leftTitleWidgets,
+    //   showTitles: true,
+    //   interval: 3,
+    //   // reservedSize: 40,
+    // )),
   );
-
+  
   @override
   Widget build(BuildContext context) {
     final appColor = Theme.of(context).primaryColor.withOpacity(0.6);
@@ -529,58 +517,57 @@ class LineChartWidget extends StatelessWidget {
             isStrokeCapRound: true,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(show: false),
-            spots: const [
-              FlSpot(1, 1),
-              FlSpot(3, 4),
-              FlSpot(5, 1.8),
-              FlSpot(7, 5),
-              FlSpot(10, 2),
-              FlSpot(12, 2.2),
-              FlSpot(13, 1.8),
-            ],
+            spots: List.generate(
+              groupedData.length,
+              (index) => FlSpot(
+                index.toDouble(),
+                groupedData[index].$2,
+              ),
+            ),
           ),
-          // LineChartBarData(
-          //   isCurved: true,
-          //   // color: AppColors.contentColorPink.withValues(alpha: 0.5),
-          //   barWidth: 4,
-          //   isStrokeCapRound: true,
-          //   dotData: const FlDotData(show: false),
-          //   belowBarData: BarAreaData(
-          //     show: true,
-          //     // color: AppColors.contentColorPink.withValues(alpha: 0.2),
-          //   ),
-          //   spots: const [
-          //     FlSpot(1, 1),
-          //     FlSpot(3, 2.8),
-          //     FlSpot(7, 1.2),
-          //     FlSpot(10, 2.8),
-          //     FlSpot(12, 2.6),
-          //     FlSpot(13, 3.9),
-          //   ],
-          // ),
-          // LineChartBarData(
-          //   isCurved: true,
-          //   curveSmoothness: 0,
-          //   // color: AppColors.contentColorCyan.withValues(alpha: 0.5),
-          //   barWidth: 2,
-          //   isStrokeCapRound: true,
-          //   dotData: const FlDotData(show: true),
-          //   belowBarData: BarAreaData(show: false),
-          //   spots: const [
-          //     FlSpot(1, 3.8),
-          //     FlSpot(3, 1.9),
-          //     FlSpot(6, 5),
-          //     FlSpot(10, 3.3),
-          //     FlSpot(13, 4.5),
-          //   ],
-          // ),
         ],
         minX: 0,
         maxX: 14,
-        maxY: 6,
-        minY: 0,
       ),
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 180),
     );
   }
 }
+
+/// 顶部选择懒
+class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
+
+  final CategoryType selectedCategoryType;
+  final void Function(CategoryType value) onSelected;
+  
+  const ExpenditureAppBar({super.key, required this.selectedCategoryType, required this.onSelected});
+  
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+          title: PopupMenuButton<CategoryType>(
+              position: PopupMenuPosition.under,
+              itemBuilder: (context) => [
+                CategoryType.income,
+                CategoryType.expense
+              ]
+                .map((value) => PopupMenuItem(
+                    value: value,
+                    child: Text(value.tr)))
+                .toList(),
+              onSelected: onSelected,
+              child: 
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(selectedCategoryType.tr),
+                  const Icon(Icons.arrow_drop_down)
+                ]),
+              ),
+          backgroundColor: Colors.transparent,
+        );
+        
+  }
+  
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+

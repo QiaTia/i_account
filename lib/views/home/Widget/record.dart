@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:i_account/common/show_modal_bottom_detail/show_modal_bottom_detail.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
 import 'package:i_account/utils/date.dart';
@@ -8,34 +10,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/store/set.dart';
 
 /// 打开记录弹窗
-void showRecordPopup(BuildContext context) {
-  showGeneralDialog(
-    context: context,
-    // barrierLabel: "Popup",
-    // transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (BuildContext context, Animation<double> animation,
-        Animation<double> secondaryAnimation) {
-      return const CustomPopup();
-    },
-    transitionBuilder: (context, a1, a2, widget) {
-      final curvedAnimation =
-          CurvedAnimation(parent: a1, curve: Curves.easeInOut);
-      // if (curvedAnimation.status != AnimationStatus.forward) {
-      //   return widget;
-      // }
-      return SlideTransition(
-        position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
-            .animate(curvedAnimation),
-        child: FadeTransition(
-          opacity: curvedAnimation,
-          child: widget,
-        ),
-      );
-    },
-  ).then((_) {
-    // Optional: Perform any actions after the dialog is closed
-    print('Dialog closed');
-  });
+Future<T?> showRecordPopup<T>(BuildContext context) {
+  // showGeneralDialog(
+  //   context: context,
+  //   // barrierLabel: "Popup",
+  //   // transitionDuration: const Duration(milliseconds: 300),
+  //   pageBuilder: (BuildContext context, Animation<double> animation,
+  //       Animation<double> secondaryAnimation) {
+  //     return const CustomPopup();
+  //   },
+  //   transitionBuilder: (context, a1, a2, widget) {
+  //     final curvedAnimation =
+  //         CurvedAnimation(parent: a1, curve: Curves.easeInOut);
+  //     // if (curvedAnimation.status != AnimationStatus.forward) {
+  //     //   return widget;
+  //     // }
+  //     return SlideTransition(
+  //       position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+  //           .animate(curvedAnimation),
+  //       child: FadeTransition(
+  //         opacity: curvedAnimation,
+  //         child: widget,
+  //       ),
+  //     );
+  //   },
+  // ).then((_) {
+  //   // Optional: Perform any actions after the dialog is closed
+  //   print('Dialog closed');
+  // });
+  return showModalBottomDetail<T>(context: context, child: const CustomPopup());
 }
 
 class CustomPopup extends StatefulWidget {
@@ -77,56 +80,73 @@ class _CustomPopupState extends State<CustomPopup> {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height / 2;
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        height: screenHeight,
-        padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+    return SizedBox(
+      height: screenHeight,
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          mainAxisSpacing: 4,
+          crossAxisSpacing: 4,
+          childAspectRatio: 1,
         ),
-        child: Column(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.transparent,
-                ),
-                onPressed: () {},
-              ),
-              const Text('添加记录',
-                  style:
-                      TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: onCloseDialog,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-              child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-              childAspectRatio: 1,
-            ),
-            itemCount: items.length,
-            itemBuilder: (context, index) => InkWell(
-                onTap: () {
-                  onItemTap(items[index]);
-                },
-                child: RecordItemWidget(item: items[index])),
-          ))
-        ]),
-      ),
+        itemCount: items.length,
+        itemBuilder: (context, index) => InkWell(
+            onTap: () {
+              onItemTap(items[index]);
+            },
+            child: RecordItemWidget(item: items[index])),
+      )
     );
+    // return Dialog(
+    //   insetPadding: const EdgeInsets.symmetric(horizontal: 12),
+    //   alignment: Alignment.bottomCenter,
+    //   child: Container(
+    //     height: screenHeight,
+    //     padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
+    //     decoration: BoxDecoration(
+    //       color: Theme.of(context).cardColor,
+    //       borderRadius: const BorderRadius.only(
+    //           topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+    //     ),
+    //     child: Column(children: [
+    //       Row(
+    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //         children: [
+    //           IconButton(
+    //             icon: const Icon(
+    //               Icons.close,
+    //               color: Colors.transparent,
+    //             ),
+    //             onPressed: () {},
+    //           ),
+    //           const Text('添加记录',
+    //               style:
+    //                   TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
+    //           IconButton(
+    //             icon: const Icon(Icons.close),
+    //             onPressed: onCloseDialog,
+    //           ),
+    //         ],
+    //       ),
+    //       const SizedBox(height: 8),
+    //       Expanded(
+    //           child: GridView.builder(
+    //         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+    //           crossAxisCount: 4,
+    //           mainAxisSpacing: 4,
+    //           crossAxisSpacing: 4,
+    //           childAspectRatio: 1,
+    //         ),
+    //         itemCount: items.length,
+    //         itemBuilder: (context, index) => InkWell(
+    //             onTap: () {
+    //               onItemTap(items[index]);
+    //             },
+    //             child: RecordItemWidget(item: items[index])),
+    //       ))
+    //     ]),
+    //   ),
+    // );
   }
 }
 
@@ -295,17 +315,17 @@ class _RecordPopupState extends State<RecordPopup> {
                   textAlign: TextAlign.center,
                   focusNode: FocusNode(),
                   onChanged: (value) => amount = value,
-                  decoration: const InputDecoration(
-                    hintText: '请输入成本',
+                  decoration: InputDecoration(
+                    hintText: 'account.amount.hint'.tr(),
                   ),
                 ),
               ),
               TextFormField(
                 initialValue: remark,
                 onChanged: (value) => remark = value,
-                decoration: const InputDecoration(
-                  hintText: '项目描述:',
-                  hintStyle: TextStyle(fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'account.remark.hint'.tr(),
+                  hintStyle: const TextStyle(fontSize: 14),
                   border: InputBorder.none,
                 ),
               ),

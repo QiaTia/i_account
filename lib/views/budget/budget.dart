@@ -7,6 +7,8 @@ import 'package:i_account/store/sql.dart';
 import 'package:i_account/model/budget.dart';
 import 'dart:math';
 
+import 'package:i_account/utils/date.dart';
+
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
   @override
@@ -54,11 +56,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-              '${selectedDate.year}年${selectedDate.month.toString().padLeft(2, '0')}月总预算'),
+              '${formatDate(selectedDate, showLen: 2)} 预算'),
           actions: [
             TextButton(
               onPressed: showBudgetInputDialog,
-              child: const Text('编辑', style: TextStyle(color: Colors.black)),
+              child: const Text('编辑'),
             ),
           ],
         ),
@@ -250,6 +252,7 @@ class _BudgetItemState extends State<_BudgetItem> {
   }
 }
 
+/// 预算环形图
 class BudgetRingChart extends StatelessWidget {
   /// 剩余百分比 0 - 100
   final double rate;
@@ -259,7 +262,7 @@ class BudgetRingChart extends StatelessWidget {
   const BudgetRingChart({super.key, this.rate = 98});
   @override
   Widget build(BuildContext context) {
-    print("refresh budget ring chart: ${rate}");
+    print("refresh budget ring chart: $rate");
     return Stack(
       children: [
         // SizedBox(
@@ -344,6 +347,8 @@ class _AnimatedArcState extends State<AnimatedArc>
           painter: _AnimatedArcPainter(_controller,
               radius: widget.size / 2,
               strokeWidth: widget.strokeWidth,
+              bgColor: Theme.of(context).cardColor,
+              printColor: Theme.of(context).colorScheme.primary,
               angle: widget.angle),
         ));
   }
@@ -353,9 +358,11 @@ class _AnimatedArcPainter extends CustomPainter {
   final Animation<double> animation;
   final double radius;
   final double angle;
+  final Color bgColor;
   final double strokeWidth;
+  final Color printColor;
   _AnimatedArcPainter(this.animation,
-      {required this.radius, required this.strokeWidth, required this.angle})
+      {required this.radius, required this.strokeWidth, required this.angle, this.printColor = Colors.blue, this.bgColor = Colors.grey})
       : super(repaint: animation);
 
   @override
@@ -365,13 +372,14 @@ class _AnimatedArcPainter extends CustomPainter {
 
     /// 背景圆弧
     final paintBg = Paint()
-      ..color = Colors.grey[300]!
+      ..color = bgColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     canvas.drawArc(rect, -pi, 2 * pi, false, paintBg);
 
     /// 动画圆弧
     Paint paint = Paint()
+      ..color = printColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 

@@ -120,13 +120,13 @@ class DashboardItem extends StatelessWidget {
           item.prefix!().then((value) {
             print(value ?? item.name);
           });
-        } else {
+        } else { 
           print(item.path);
           // Get.toNamed(item.path!);
-        }
-      },
-    );
-  }
+        } 
+      }, 
+    ); 
+  } 
 }
 
 /// 标题内容容器
@@ -147,9 +147,9 @@ class TitleContainer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 12, top: 0, right: 12, bottom: 16),
       child: DecoratedBox(
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.elliptical(10, 10))),
+          decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.all(Radius.elliptical(10, 10))),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Padding(
@@ -208,7 +208,7 @@ class ListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(borderRadius ?? 0)),
         child: Column(children: [
           Padding(
@@ -221,10 +221,7 @@ class ListItem extends StatelessWidget {
                           child: Image.asset(icon, width: 16, height: 18))
                       : Empty,
                   // 注意：这里的 `icon` 应当是一个字符串
-                  Text(name,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          color: Color.fromRGBO(19, 32, 51, 1))),
+                  Text(name, style: Theme.of(context).textTheme.bodyMedium),
                   Expanded(
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -305,7 +302,7 @@ class EmptyContent extends StatelessWidget {
     return Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/bg/empty.png', width: 130),
+          Image.asset('assets/ /empty.png', width: 130),
           const Padding(padding: EdgeInsets.only(top: 16)),
           Text(text, style: const TextStyle(fontSize: 14, color: Colors.grey))
         ]));
