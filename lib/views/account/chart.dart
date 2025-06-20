@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/common/Widget/base.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/set.dart';
 import 'package:i_account/store/sql.dart';
@@ -17,13 +18,17 @@ class ExpenditureScreen extends StatefulWidget {
 
 class _ExpenditureScreenState extends State<ExpenditureScreen> {
   final DBManager $dbManager = DBManager();
+
   /// 默认选中“支出”
-  CategoryType selectedCategoryType = CategoryType.expense; 
+  CategoryType selectedCategoryType = CategoryType.expense;
   double totalAmount = 0.0;
+
   /// 按日期归档数据
   Map<String, double> groupedData = {};
+
   /// 排行榜数据
   List<CategoryStatistics> rankingData = [];
+
   /// 选择类别
   void onSelected(CategoryType value) {
     setState(() {
@@ -33,15 +38,17 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   /// 初始化数据
   void initData((String, String, int) selected) {
-    $dbManager.selectRecordByCondition(selected.$1, selected.$2, selectedCategoryType,selected.$3)
-      .then((result) {
-        // 处理查询结果
-        setState(() {
-          rankingData = result.$1;
-          totalAmount = result.$3;
-          groupedData = result.$2;
-        });
+    $dbManager
+        .selectRecordByCondition(
+            selected.$1, selected.$2, selectedCategoryType, selected.$3)
+        .then((result) {
+      // 处理查询结果
+      setState(() {
+        rankingData = result.$1;
+        totalAmount = result.$3;
+        groupedData = result.$2;
       });
+    });
   }
 
   @override
@@ -52,48 +59,59 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
           onSelected: onSelected,
         ),
         body: Column(children: [
-          HeaderWidget(
-            onDate: (selected) {
-              initData(selected);
-            }
-          ),
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('总支出: ${formatNumber(totalAmount)} 元',
-                    style: const TextStyle(fontSize: 18)),
-                Text('平均值: ${formatNumber(totalAmount / groupedData.length)} 元'),
-                const SizedBox(height: 16.0),
-                SizedBox(
-                  height: 200,
-                  width: double.infinity,
-                  child: LineChartWidget(data: groupedData)
-                ),
-                const SizedBox(height: 16.0),
-                const Text('支出排行榜', style: TextStyle(fontSize: 18)),
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: rankingData.length,
-                  itemBuilder: (context, index) {
-                    final item = rankingData[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.grey[300],
-                        child: Icon(IconData(int.parse(item.icon),
-                      fontFamily: Icons.abc.fontFamily)),
-                      ),
-                      title: Text(item.name),
-                      subtitle: Text('${formatNumber(item.totalAmount / totalAmount * 100)} %'),
-                      trailing: Text('${formatNumber(item.totalAmount)} 元'),
-                    );
-                  },
-                ),
-              ],
+          HeaderWidget(onDate: initData),
+          Expanded(
+            child: Container(
+              color: Theme.of(context).cardColor,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text('总支出: ${formatNumber(totalAmount)} 元'),
+                        Text(
+                            '平均值: ${formatNumber(totalAmount / groupedData.length)} 元')
+                      ]),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                      height: 180,
+                      width: double.infinity,
+                      child: groupedData.isEmpty
+                          ? const Center(child: CircularProgressIndicator())
+                          : LineChartWidget(data: groupedData)),
+                  const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text('支出排行榜',
+                          style: TextStyle(fontWeight: FontWeight.bold))),
+                  Expanded(
+                    child: rankingData.isNotEmpty
+                        ? ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: rankingData.length,
+                            itemBuilder: (context, index) {
+                              final item = rankingData[index];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.grey[300],
+                                  child: Icon(IconData(int.parse(item.icon),
+                                      fontFamily: Icons.abc.fontFamily)),
+                                ),
+                                title: Text(item.name),
+                                subtitle: Text(
+                                    '${formatNumber(item.totalAmount / totalAmount * 100)} %'),
+                                trailing:
+                                    Text('${formatNumber(item.totalAmount)} 元'),
+                              );
+                            },
+                          )
+                        : const Center(child: EmptyContent()),
+                  )
+                ],
+              ),
             ),
-          ),
+          )
         ]));
   }
 }
@@ -101,7 +119,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 /// 顶部日期选择栏
 class HeaderWidget extends StatefulWidget {
   final void Function((String, String, int) selected)? onDate;
-  const HeaderWidget({ super.key, this.onDate });
+  const HeaderWidget({super.key, this.onDate});
   @override
   _HeaderWidgetState createState() => _HeaderWidgetState();
 }
@@ -184,7 +202,6 @@ class _HeaderWidgetState extends State<HeaderWidget> {
               selectedIndex = list.length - 1;
             });
           });
-        
         }
     }
   }
@@ -477,46 +494,67 @@ class _ButtonGroupWidgetState extends State<ButtonGroupWidget> {
 
 /// 折线图组件
 class LineChartWidget extends StatelessWidget {
+  final noAxisTitles = const AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  );
   final Map<String, double> data;
-  List<(String, double)> get groupedData => data.keys.map((e) => (e, data[e]!)).toList();
+  List<(String, double)> get groupedData =>
+      data.keys.map((e) => (e, data[e]!)).toList();
   const LineChartWidget({super.key, required this.data});
 
-  FlTitlesData get titlesData2 => FlTitlesData(
-    bottomTitles: AxisTitles(
-      sideTitles: SideTitles(
-        showTitles: true,
-        reservedSize: 32,
-        interval: 5,
-        getTitlesWidget:(value, meta) => Text(value.toInt() >= groupedData.length ? '' : groupedData[value.toInt()].$1),
-      ),
-    ),
-    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false), axisNameSize: 0),
-    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false), axisNameSize: 0),
-    // leftTitles: const AxisTitles(
-    //     sideTitles: SideTitles(
-    //   // getTitlesWidget: leftTitleWidgets,
-    //   showTitles: true,
-    //   interval: 3,
-    //   // reservedSize: 40,
-    // )),
-  );
-  
+  FlTitlesData get titlesData => FlTitlesData(
+        show: true,
+        rightTitles: noAxisTitles,
+        topTitles: noAxisTitles,
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: (groupedData.length / 12).ceilToDouble(),
+            getTitlesWidget: bottomTitleWidgets,
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            // interval: 4,
+            getTitlesWidget: leftTitleWidgets,
+            reservedSize: 42,
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
-    final appColor = Theme.of(context).primaryColor.withOpacity(0.6);
+    final appColor = Theme.of(context).primaryColor;
     return LineChart(
       LineChartData(
-        lineTouchData: const LineTouchData(enabled: false),
-        titlesData: titlesData2,
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipColor: (spot) => Theme.of(context).primaryColorLight,
+          )
+        ),
+        titlesData: titlesData,
+        gridData: const FlGridData(show: false),
+        borderData: FlBorderData(
+          show: true,
+          border: Border(
+            bottom: BorderSide(color: appColor.withOpacity(0.4), width: 2),
+            left: const BorderSide(color: Colors.transparent),
+            right: const BorderSide(color: Colors.transparent),
+            top: const BorderSide(color: Colors.transparent),
+          ),
+        ),
         lineBarsData: [
           LineChartBarData(
             isCurved: true,
-            // curveSmoothness: 0,
+            curveSmoothness: 0.2,
             color: appColor,
             barWidth: 2,
             isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
+            // dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(show: false),
+            dotData: const FlDotData(show: true),
             spots: List.generate(
               groupedData.length,
               (index) => FlSpot(
@@ -526,48 +564,74 @@ class LineChartWidget extends StatelessWidget {
             ),
           ),
         ],
-        minX: 0,
-        maxX: 14,
       ),
       duration: const Duration(milliseconds: 180),
     );
   }
+
+  Widget bottomTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      fontWeight: FontWeight.normal,
+      fontSize: 12,
+    );
+    var keyStr = groupedData[value.toInt()].$1;
+
+    var text =
+        keyStr.substring(keyStr.length - (groupedData.length > 7 ? 2 : 5));
+    return SideTitleWidget(
+      meta: meta,
+      child: Text(text, style: style),
+    );
+  }
+
+  Widget leftTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      // fontWeight: FontWeight.w300,
+      fontSize: 13,
+    );
+    String text;
+    var current = value.toInt();
+    if (current > 9e7) {
+      text = '${(current / 1e8).toStringAsFixed(1)}E';
+    } else if (current > 9e3) {
+      text = '${(current / 1e4).toStringAsFixed(1)}M';
+    } else if (current > 9e2) {
+      text = '${(current / 1e3).toStringAsFixed(1)}K';
+    } else {
+      text = value.toInt().toString();
+    }
+    return Text(text, style: style, textAlign: TextAlign.left);
+  }
 }
 
-/// 顶部选择懒
+/// 顶部选择
 class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
-
   final CategoryType selectedCategoryType;
   final void Function(CategoryType value) onSelected;
-  
-  const ExpenditureAppBar({super.key, required this.selectedCategoryType, required this.onSelected});
-  
+
+  const ExpenditureAppBar(
+      {super.key,
+      required this.selectedCategoryType,
+      required this.onSelected});
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
-          title: PopupMenuButton<CategoryType>(
-              position: PopupMenuPosition.under,
-              itemBuilder: (context) => [
-                CategoryType.income,
-                CategoryType.expense
-              ]
-                .map((value) => PopupMenuItem(
-                    value: value,
-                    child: Text(value.tr)))
-                .toList(),
-              onSelected: onSelected,
-              child: 
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(selectedCategoryType.tr),
-                  const Icon(Icons.arrow_drop_down)
-                ]),
-              ),
-          backgroundColor: Colors.transparent,
-        );
-        
+      title: PopupMenuButton<CategoryType>(
+        position: PopupMenuPosition.under,
+        itemBuilder: (context) => [CategoryType.income, CategoryType.expense]
+            .map((value) => PopupMenuItem(value: value, child: Text(value.tr)))
+            .toList(),
+        onSelected: onSelected,
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(selectedCategoryType.tr),
+          const Icon(Icons.arrow_drop_down)
+        ]),
+      ),
+      backgroundColor: Colors.transparent,
+    );
   }
-  
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
-

@@ -11,14 +11,14 @@ import 'package:i_account/views/game/2048.dart';
 import 'package:i_account/views/game/sun.dart';
 import 'package:i_account/views/game/word.dart';
 // import 'package:i_account/views/home/Widget/account.dart';
-import 'package:i_account/views/login/login.dart';
+// import 'package:i_account/views/login/login.dart';
 import 'package:i_account/views/mine/settings.dart';
 import 'package:i_account/views/music/player.dart';
 import 'package:i_account/views/piece.dart';
 import 'package:i_account/views/word.dart';
 
 Map<String, Widget Function(BuildContext)> routes = {
-  '/login': (context) => LoginPage(),
+  // '/login': (context) => LoginPage(),
   '/word': (context) => const MyWord(),
   '/game': (context) => const GoGame(),
   '/calc': (context) => CalculatorScreen(),

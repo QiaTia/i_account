@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:i_account/utils/date.dart';
 import 'package:sqflite/sqflite.dart';
 import '../model/record.dart';
@@ -265,25 +267,26 @@ class DBManager {
       double countCategoryAmount = categoryData[itCategoryId] ?? 0;
       categoryData[itCategoryId] = countCategoryAmount + amount;
       // 按日期归档
-      var billDate = formatDate(itDate, showLen: group == 2 ? 2: 1);
+      var billDate = formatDate(itDate, showLen: group == 2 ? 2 : 3);
       double countDateAmount = groupedData[billDate] ?? 0;
-      groupedData[billDate] = countDateAmount + amount;
+      groupedData[billDate] = ((countDateAmount + amount) * 100).toInt() / 100;
       totalAmount += amount;
     }
 
     List<Map<String, dynamic>> queryCategoryData = await db.rawQuery('SELECT * FROM `category` WHERE id IN (${categoryData.keys.join(',')})');
-    var categoryStatistics = queryCategoryData.map((it)  {
+    List<CategoryStatistics> categoryStatistics = queryCategoryData.map((it)  {
       var item = CategoryStatistics(
         id: it['id'],
         name: it['name'],
         type: CategoryType.fromInt(it['type']),
         icon: it['icon'],
-        totalAmount: categoryData[(it['id'] as int)] ?? 0,
+        totalAmount: ((categoryData[(it['id'] as int)] ?? 0) * 100).toInt() / 100,
       );
       return item;
-    }).toList();
-    
-    return (categoryStatistics, groupedData, totalAmount);
+    })
+      .toList();
+    categoryStatistics.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
+    return (categoryStatistics, groupedData, (totalAmount* 100).toInt() / 100);
   }
 
   /// TODO: 查询记录条数

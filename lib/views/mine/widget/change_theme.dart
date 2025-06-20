@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:i_account/store/theme.dart';
+import 'package:i_account/store/application.dart';
 import 'package:i_account/themes/multiple_theme_mode.dart';
 
 class ChangeThemeWidget extends StatelessWidget {
@@ -9,7 +9,6 @@ class ChangeThemeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final currentTheme = ref.watch(currentThemeProvider);
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       children: [
@@ -46,12 +45,12 @@ class DarkThemeBody extends ConsumerWidget {
 
   @override
   Widget build(context, ref) {
-    final currentThemeMode = ref.watch(currentThemeModeProvider);
-    final themeModeProvider = ref.read(currentThemeModeProvider.notifier);
+    final currentThemeMode = ref.watch(currentApplicationProvider).themeMode;
+    final themeModeProvider = ref.read(currentApplicationProvider.notifier);
     /// 是否深色模式
     final isDark = themeModeProvider.isDarkMode;
     void toggleDarkMode(ThemeMode mode) {
-      themeModeProvider.setTheme(mode);
+      themeModeProvider.setThemeMode(mode);
     }
     return Wrap(
       alignment: WrapAlignment.center,
@@ -128,7 +127,7 @@ class DarkThemeBody extends ConsumerWidget {
               ),
             ),
           ),
-          onTap: () => themeModeProvider.setTheme(ThemeMode.dark),
+          onTap: () => themeModeProvider.setThemeMode(ThemeMode.dark),
         ),
       ],
     );
@@ -144,7 +143,7 @@ class MultipleThemeBody extends ConsumerWidget {
     /// 获取多主题
     const multipleThemeModeList = MultipleThemeMode.values;
 
-    final multipleThemeMode = ref.watch(currentThemeProvider);
+    final multipleThemeMode = ref.watch(currentApplicationProvider).theme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Wrap(
@@ -161,7 +160,7 @@ class MultipleThemeBody extends ConsumerWidget {
             child: Container(alignment: Alignment.center, color: primaryColor),
             onTap: () {
               print('当前选择主题：${appMultipleThemeMode.name}');
-              ref.read(currentThemeProvider.notifier).setTheme(appMultipleThemeMode);
+              ref.read(currentApplicationProvider.notifier).setTheme(appMultipleThemeMode);
             },
           );
         }),
@@ -191,7 +190,7 @@ class MultipleThemeCard extends ConsumerWidget {
 
   @override
   Widget build(context, ref) {
-    final isDark  = ref.read(currentThemeModeProvider.notifier).isDarkMode;
+    final isDark  = ref.read(currentApplicationProvider.notifier).isDarkMode;
     final isSelected = selected ?? false;
     final borderSelected = Border.all(width: 3, color: isDark ? Colors.white : Colors.black);
     final borderUnselected = Border.all(width: 3, color: isDark ? Colors.white12 : Colors.black12);
@@ -263,7 +262,7 @@ class ThemeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final isDark = ref.read(currentThemeModeProvider.notifier).isDarkMode;
+    final isDark = ref.read(currentApplicationProvider.notifier).isDarkMode;
     final isSelected = selected ?? false;
     final borderSelected = Border.all(width: 3, color: isDark ? Colors.white : Colors.black);
     final borderUnselected = Border.all(width: 3, color: isDark ? Colors.white12 : Colors.black12);

@@ -1,7 +1,4 @@
-import 'dart:ui';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-const startLocale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
 
 @riverpod
 class ClickCount extends Notifier<int> {

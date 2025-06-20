@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:i_account/common/widget/base.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
 import 'package:i_account/views/details/detail.dart';
@@ -144,7 +144,9 @@ class _RecordListState extends State<RecordList> {
           widget.selectDate.month, widget.sortMode == 0 ? 'bill_date' : 'amount' )
       .then((result) {
         if (result.pageSize * currentPage >= result.total) {
-          hasNextPage = false;
+          setState(() {
+            hasNextPage = false;
+          });
           _controller.finishLoad(IndicatorResult.noMore);
         }
         setState(() {
@@ -157,9 +159,11 @@ class _RecordListState extends State<RecordList> {
   /// 刷新数据
   Future<void> onRefresh() async {
     currentPage = 1;
-    hasNextPage = true;
     _controller.finishLoad(IndicatorResult.none);
-    setState(() {list = [];});
+    setState(() {
+      hasNextPage = true;
+      list = [];
+    });
     await Future.delayed(const Duration(seconds: 1));
     getData();
   }
@@ -192,7 +196,9 @@ class _RecordListState extends State<RecordList> {
       controller: _controller,
       onRefresh: onRefresh,
       onLoad: getData,
-      child: list.isEmpty ? const Center(child: CircularProgressIndicator()) : ListView.builder(
+      child: list.isEmpty ? 
+        hasNextPage ? const Center(child: CircularProgressIndicator()) : const EmptyContent() : 
+        ListView.builder(
         itemCount: list.length,
         itemBuilder: (context, index) {
           var it = list[index];
@@ -206,11 +212,18 @@ class _RecordListState extends State<RecordList> {
                       fontFamily: Icons.abc.fontFamily)),
             ),
             title: Text(it.amount.toStringAsFixed(2)),
-            subtitle: Text(it.billDate
-                .toIso8601String()
-                .replaceAll('T', ' ')
-                .replaceAll(RegExp(r'.\d+$'), '')),
-            trailing: Text(it.name),
+            subtitle: Text(it.remark,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall!
+                .copyWith(color: Theme.of(context).dividerColor),
+            ),
+            trailing: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(DateFormat('yyyy/MM/dd').format(it.billDate)),
+                Text(it.name)
+            ]),
           );
         },
       ),

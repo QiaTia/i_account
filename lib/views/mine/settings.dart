@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:i_account/common/show_modal_bottom_detail/show_modal_bottom_detail.dart';
-import 'package:i_account/store/set.dart';
-import 'package:i_account/store/theme.dart';
+import 'package:i_account/store/application.dart';
 import 'package:i_account/utils/modal.dart';
 import 'package:i_account/views/home/home.dart';
 import 'package:i_account/views/mine/widget/change_theme.dart';
@@ -20,7 +19,7 @@ class SettingsPage extends ConsumerWidget {
     // final ThemeMode themeMode = ref.watch(currentThemeModeProvider);
     // final MultipleThemeMode theme = ref.watch(currentThemeProvider);
     final nav = Navigator.of(context);
-    final themeModeProvider = ref.read(currentThemeModeProvider.notifier);
+    final appProvider = ref.read(currentApplicationProvider.notifier);
     /// 操作内容
     final list = [
       _SettingItem(
@@ -41,7 +40,7 @@ class SettingsPage extends ConsumerWidget {
             showModalBottomDetail(
               context: context,
               child: const ChangeThemeWidget(),
-              isDark: themeModeProvider.isDarkMode,
+              isDark: appProvider.isDarkMode,
             );
             // themeModeProvider.setTheme(
             //     themeModeProvider.isDarkMode

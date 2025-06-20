@@ -12,6 +12,7 @@
   "confirmExitApp": "Press again to close the application!",
   "expense": "Expense",
   "income": "Income",
+  "empty.data": "No data",
   "mine.dark": "Dark",
   "mine.light": "Light",
   "mine.following": "Following System",

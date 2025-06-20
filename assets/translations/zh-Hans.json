@@ -12,6 +12,7 @@
   "confirmExitApp": "再次按下以关闭应用程序！",
   "expense": "支出",
   "income": "收入",
+  "empty.data": "暂无数据",
   "mine.dark": "深色",
   "mine.light": "浅色",
   "mine.following": "随系统",

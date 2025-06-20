@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/svg.dart';
 // import '../dashboard.dart';
 // import 'package:my_app/common/global.dart';
 // import 'package:get/get.dart';
@@ -296,15 +297,15 @@ class ListItem extends StatelessWidget {
 /// 缺省内容
 class EmptyContent extends StatelessWidget {
   final String text;
-  const EmptyContent({super.key, this.text = '暂无数据'});
+  const EmptyContent({super.key, this.text = 'empty.data'});
   @override
   Widget build(BuildContext context) {
     return Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/ /empty.png', width: 130),
+          SvgPicture.asset('assets/icon/ic_empty.svg', width: 130),
           const Padding(padding: EdgeInsets.only(top: 16)),
-          Text(text, style: const TextStyle(fontSize: 14, color: Colors.grey))
+          Text(text.tr(), style: const TextStyle(fontSize: 14, color: Colors.grey))
         ]));
   }
 }
