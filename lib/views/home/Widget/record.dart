@@ -41,14 +41,47 @@ Future<T?> showRecordPopup<T>(BuildContext context) {
   return showModalBottomDetail<T>(context: context, child: const CustomPopup());
 }
 
-class CustomPopup extends StatefulWidget {
+class CustomPopup extends StatelessWidget {
   const CustomPopup({super.key});
-
   @override
-  _CustomPopupState createState() => _CustomPopupState();
+  Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height / 2;
+    return DefaultTabController(
+        length: 2,
+        child: SizedBox(
+          height: screenHeight,
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Expanded(
+                child: TabBarView(
+                  children: [
+                    CategoryGridView(type: CategoryType.expense),
+                    CategoryGridView(type: CategoryType.income),
+                  ],
+                ),
+              ),
+              TabBar(
+                tabs: [
+                  Tab(text: 'expense'.tr()),
+                  Tab(text: 'income'.tr()),
+                ],
+              ),
+            ],
+          ),
+        ));
+  }
 }
 
-class _CustomPopupState extends State<CustomPopup> {
+class CategoryGridView extends StatefulWidget {
+  final CategoryType type;
+  const CategoryGridView({super.key, this.type = CategoryType.expense});
+  @override
+  createState() => _CategoryGridViewState();
+}
+
+class _CategoryGridViewState extends State<CategoryGridView> {
   final DBManager db = DBManager();
   List<CategoryItemProvider> items = [];
 
@@ -59,7 +92,7 @@ class _CustomPopupState extends State<CustomPopup> {
 
   /// 获取分类列表
   void getCategoryList() async {
-    db.queryCategoryList().then((list) {
+    db.queryCategoryList(widget.type).then((list) {
       setState(() {
         items = list;
       });
@@ -68,7 +101,12 @@ class _CustomPopupState extends State<CustomPopup> {
 
   /// 点击项目
   void onItemTap(CategoryItemProvider item) {
-    showRecordDialog(context: context, item: item);
+    showRecordDialog(
+        context: context,
+        item: item,
+        onDone: () {
+          Navigator.pop(context);
+        });
   }
 
   @override
@@ -79,74 +117,20 @@ class _CustomPopupState extends State<CustomPopup> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height / 2;
-    return SizedBox(
-      height: screenHeight,
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
-          childAspectRatio: 1,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) => InkWell(
-            onTap: () {
-              onItemTap(items[index]);
-            },
-            child: RecordItemWidget(item: items[index])),
-      )
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
+        childAspectRatio: 1,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) => InkWell(
+          onTap: () {
+            onItemTap(items[index]);
+          },
+          child: RecordItemWidget(item: items[index])),
     );
-    // return Dialog(
-    //   insetPadding: const EdgeInsets.symmetric(horizontal: 12),
-    //   alignment: Alignment.bottomCenter,
-    //   child: Container(
-    //     height: screenHeight,
-    //     padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
-    //     decoration: BoxDecoration(
-    //       color: Theme.of(context).cardColor,
-    //       borderRadius: const BorderRadius.only(
-    //           topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-    //     ),
-    //     child: Column(children: [
-    //       Row(
-    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //         children: [
-    //           IconButton(
-    //             icon: const Icon(
-    //               Icons.close,
-    //               color: Colors.transparent,
-    //             ),
-    //             onPressed: () {},
-    //           ),
-    //           const Text('添加记录',
-    //               style:
-    //                   TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
-    //           IconButton(
-    //             icon: const Icon(Icons.close),
-    //             onPressed: onCloseDialog,
-    //           ),
-    //         ],
-    //       ),
-    //       const SizedBox(height: 8),
-    //       Expanded(
-    //           child: GridView.builder(
-    //         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-    //           crossAxisCount: 4,
-    //           mainAxisSpacing: 4,
-    //           crossAxisSpacing: 4,
-    //           childAspectRatio: 1,
-    //         ),
-    //         itemCount: items.length,
-    //         itemBuilder: (context, index) => InkWell(
-    //             onTap: () {
-    //               onItemTap(items[index]);
-    //             },
-    //             child: RecordItemWidget(item: items[index])),
-    //       ))
-    //     ]),
-    //   ),
-    // );
   }
 }
 
@@ -158,25 +142,18 @@ class RecordItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      // decoration: BoxDecoration(
-      //   border: Border.all(color: Colors.grey.shade300),
-      //   borderRadius: BorderRadius.circular(10),
-      // ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(IconData(int.parse(item.icon), fontFamily: Icons.abc.fontFamily),
-              size: 28),
-          const SizedBox(height: 4),
-          Text(
-            item.name,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
-          ),
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(IconData(int.parse(item.icon), fontFamily: Icons.abc.fontFamily),
+            color: Theme.of(context).colorScheme.primary, size: 28),
+        const SizedBox(height: 4),
+        Text(
+          item.name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
     );
   }
 }
@@ -189,8 +166,12 @@ class RecordPopup extends StatefulWidget {
   /// 分类id
   final int categoryId;
 
+  /// 分类类型
+  final CategoryType type;
+
   /// 传入此参数代表是修改记录
   final RecordItem? record;
+
   /// 完成时回调
   final Function? onDone;
   const RecordPopup(
@@ -198,6 +179,7 @@ class RecordPopup extends StatefulWidget {
       required this.categoryName,
       required this.categoryId,
       this.onDone,
+      this.type = CategoryType.expense,
       this.record});
   @override
   State<RecordPopup> createState() => _RecordPopupState();
@@ -219,6 +201,7 @@ class _RecordPopupState extends State<RecordPopup> {
   void onCancel() {
     Navigator.pop(context);
   }
+
   Function? onDone;
 
   Future<void> onSelectDate() async {
@@ -241,7 +224,7 @@ class _RecordPopupState extends State<RecordPopup> {
       icon: '', // Provide a valid icon value
       id: widget.record?.id ?? 0, // Provide a valid id value
       name: widget.categoryName, // Provide a valid name value
-      categoryType: CategoryType.expense, // Provide a valid categoryType value
+      categoryType: widget.type, // Provide a valid categoryType value
     );
     if (widget.record != null) {
       /// 编辑模式
@@ -252,8 +235,9 @@ class _RecordPopupState extends State<RecordPopup> {
     }
     widget.onDone?.call();
     onDone?.call();
+
     /// 关闭两个弹窗
-    onCancel();
+    // onCancel();
     // widget.onDone?.call();
     onCancel();
   }
@@ -277,75 +261,75 @@ class _RecordPopupState extends State<RecordPopup> {
         ref.read(refreshHomeProvider.notifier).update();
       };
       return Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 12,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.categoryName,
-                    style: const TextStyle(
-                        fontSize: 18.0, fontWeight: FontWeight.bold),
-                  ),
-                  InkWell(
-                    onTap: onSelectDate,
-                    child: Row(spacing: 2, children: [
-                      Text(
-                        formatDate(date),
-                        style: const TextStyle(fontSize: 16.0),
-                      ),
-                      const Icon(Icons.arrow_drop_down),
-                    ]),
-                  )
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 40.0),
-                child: TextFormField(
-                  initialValue: amount,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,2}')),
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 12,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.categoryName,
+                      style: const TextStyle(
+                          fontSize: 18.0, fontWeight: FontWeight.bold),
+                    ),
+                    InkWell(
+                      onTap: onSelectDate,
+                      child: Row(spacing: 2, children: [
+                        Text(
+                          formatDate(date),
+                          style: const TextStyle(fontSize: 16.0),
+                        ),
+                        const Icon(Icons.arrow_drop_down),
+                      ]),
+                    )
                   ],
-                  textAlign: TextAlign.center,
-                  focusNode: FocusNode(),
-                  onChanged: (value) => amount = value,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 40.0),
+                  child: TextFormField(
+                    initialValue: amount,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}')),
+                    ],
+                    textAlign: TextAlign.center,
+                    focusNode: FocusNode(),
+                    onChanged: (value) => amount = value,
+                    decoration: InputDecoration(
+                      hintText: 'account.amount.hint'.tr(),
+                    ),
+                  ),
+                ),
+                TextFormField(
+                  initialValue: remark,
+                  onChanged: (value) => remark = value,
                   decoration: InputDecoration(
-                    hintText: 'account.amount.hint'.tr(),
+                    hintText: 'account.remark.hint'.tr(),
+                    hintStyle: const TextStyle(fontSize: 14),
+                    border: InputBorder.none,
                   ),
                 ),
-              ),
-              TextFormField(
-                initialValue: remark,
-                onChanged: (value) => remark = value,
-                decoration: InputDecoration(
-                  hintText: 'account.remark.hint'.tr(),
-                  hintStyle: const TextStyle(fontSize: 14),
-                  border: InputBorder.none,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 20,
+                  children: [
+                    TextButton(
+                      onPressed: onCancel,
+                      child: const Text('取消'),
+                    ),
+                    FilledButton(
+                      onPressed: onConfirm,
+                      child: const Text('确定'),
+                    ),
+                  ],
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                spacing: 20,
-                children: [
-                  TextButton(
-                    onPressed: onCancel,
-                    child: const Text('取消'),
-                  ),
-                  FilledButton(
-                    onPressed: onConfirm,
-                    child: const Text('确定'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ));
+              ],
+            ),
+          ));
     });
   }
 }
@@ -367,6 +351,7 @@ Future showRecordDialog(
             categoryName: item?.name ?? record?.name ?? '',
             categoryId: item?.id ?? record?.categoryId ?? 0,
             onDone: onDone,
+            type: item?.type ?? record?.categoryType ?? CategoryType.expense,
             record: record),
       );
     },

@@ -9,12 +9,10 @@ import 'store/sql.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  DBManager().openDB('db');
   await EasyLocalization.ensureInitialized();
-  final dbManager = DBManager();
-  await dbManager.openDB('db');
   /// 加载本地配置直接复写
   final app = await loadApplication();
-  // currentApplicationProvider.notifier.setApplication(application);
   runApp(ProviderScope(
     overrides: [
       currentApplicationProvider.overrideWith((ref) => ApplicationController(app)),
@@ -33,11 +31,8 @@ class MyApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
   Widget build(context, ref) {
+    /// 获取当前配置
     final application = ref.watch(currentApplicationProvider);
-    // final applicationNotifier = ref.read(currentApplicationProvider.notifier);
-    // applicationNotifier.setApplication(app);
-    // applicationNotifier.setLocale(application.locale);
-    // applicationNotifier.setThemeMode(application.themeMode);
     return MaterialApp(
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,

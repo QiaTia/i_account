@@ -47,6 +47,7 @@
   "modal.confirm": "Confirm",
   "modal.edit": "Edit",
   "modal.delete": "Delete",
+  "modal.delete.hint": "Are you sure you want to delete this bill?",
   "modal.cancel": "Cancel",
   "account.rank.time": "By Time",
   "account.rank.amount": "By Amount",
@@ -60,6 +61,6 @@
   "account.month": "Month",
   "account.surplus": "Surplus",
   "account.amount.hint": "Please input Amount!",
-  "account.remark.hint": "Please input Remark!"
-
+  "account.remark.hint": "Please input Remark!",
+  "account.origin.channel": "Import original information"
 }

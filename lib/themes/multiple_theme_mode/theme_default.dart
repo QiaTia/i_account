@@ -34,9 +34,10 @@ class AppThemeDefault implements AppMultipleTheme {
       // 主颜色
       primaryColor: primaryColor,
       // scaffold背景颜色 // 0xFFF7F7F7 0xFFF9F9F9 0xFFF6F8FA 0xFFFCFBFC
-      scaffoldBackgroundColor: const Color(0xFFF6F8FA),
+      // scaffoldBackgroundColor: const Color(0xFFF7F7F7),
       // AppBar
       appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
           statusBarColor: Colors.transparent,
           systemNavigationBarColor: Colors.transparent,

@@ -53,6 +53,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appContent = Theme.of(context);
     return Scaffold(
         appBar: ExpenditureAppBar(
           selectedCategoryType: selectedCategoryType,
@@ -62,7 +63,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
           HeaderWidget(onDate: initData),
           Expanded(
             child: Container(
-              color: Theme.of(context).cardColor,
+              color: appContent.cardColor,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,9 +95,10 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                               final item = rankingData[index];
                               return ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Colors.grey[300],
+                                  backgroundColor: appContent.primaryColor.withValues(alpha: 0.16),
                                   child: Icon(IconData(int.parse(item.icon),
-                                      fontFamily: Icons.abc.fontFamily)),
+                                      fontFamily: Icons.abc.fontFamily),
+                                      color: appContent.colorScheme.primary),
                                 ),
                                 title: Text(item.name),
                                 subtitle: Text(

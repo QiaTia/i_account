@@ -7,6 +7,7 @@ import 'package:i_account/store/sql.dart';
 import 'package:i_account/utils/read_file.dart';
 import 'package:i_account/views/home/Widget/datePicker.dart';
 import 'package:i_account/views/home/Widget/record.dart';
+import 'package:i_account/views/details/details.dart';
 import '../../store/set.dart';
 
 class MyHomePage extends ConsumerWidget {
@@ -95,20 +96,19 @@ class MyHomePage extends ConsumerWidget {
                 child: const SizedBox(height: 250, width: double.infinity),
               ),
             ),
-            Center(
+            const Center(
               child: Column(
                 children: <Widget>[
-                  const NavDataContainer(),
-                  const NavContainer(),
-                  const AnimatedText(),
-                  FilledButton(
-                    onPressed: () {
-                      // navigator.pushNamed("/word");
-                      // Navigator.of(context).pushNamed("/account/new");
-                      // onTap();
-                      ref.read(clickCountProvider.notifier).increment();
-                    },
-                    child: const Text("mine.about").tr()),
+                  NavDataContainer(),
+                  NavContainer(),
+                  HomeList(),
+                  // const AnimatedText(),
+                  // FilledButton(
+                  //   onPressed: () {
+                  //     // onTap();
+                  //     ref.read(clickCountProvider.notifier).increment();
+                  //   },
+                  //   child: const Text("mine.about").tr()),
                 ],
               ),
             )
@@ -126,6 +126,19 @@ class MyHomePage extends ConsumerWidget {
         ));
   }
 }
+
+/// 首页列表内容
+class HomeList extends ConsumerWidget {
+  const HomeList({super.key});
+  
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectDate = ref.watch(selectDateProvider);
+    // final refHome = ref.watch(refreshHomeProvider);
+    return Expanded(child: RecordList(selectDate: selectDate));
+  }
+}
+
 
 /// 顶部导航栏
 class NavContainer extends StatelessWidget {

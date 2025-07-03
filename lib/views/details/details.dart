@@ -20,7 +20,7 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  /// 排序方式: 0: 按金额 1: 按时间
+  /// 排序方式: 0: 按时间 1: 按金额
   int sortMode = 0;
   /// 选择排序方式
   void onSelected(String selected) {
@@ -116,21 +116,22 @@ class _TotalWidgetState extends State<_TotalWidget> {
   }
 }
 
-class RecordList extends StatefulWidget {
-  const RecordList({super.key, required this.selectDate, required this.type, required this.sortMode,  });
+class RecordList extends ConsumerStatefulWidget {
   final DateTime selectDate;
-  final CategoryType type;
+  final CategoryType? type;
   final int sortMode;
+
+  const RecordList({super.key, required this.selectDate, this.type, this.sortMode = 0 });
   @override
-  State<RecordList> createState() => _RecordListState();
+  ConsumerState<RecordList> createState() => _RecordListState();
 }
 
-class _RecordListState extends State<RecordList> {
+class _RecordListState extends ConsumerState<RecordList> {
   List<RecordItem> list = [];
   final EasyRefreshController _controller = EasyRefreshController(controlFinishLoad: true);
   DBManager db = DBManager();
   // #todo 分页
-  int currentPage = 1;
+  int currentPage = 0;
   /// 是否还有下一页
   bool hasNextPage = true;
   /// 获取数据列表
@@ -140,25 +141,25 @@ class _RecordListState extends State<RecordList> {
       return;
     }
     db
-      .selectRecordList(widget.type, currentPage++, widget.selectDate.year,
+      .selectRecordList(widget.type, ++currentPage, widget.selectDate.year,
           widget.selectDate.month, widget.sortMode == 0 ? 'bill_date' : 'amount' )
       .then((result) {
-        if (result.pageSize * currentPage >= result.total) {
-          setState(() {
-            hasNextPage = false;
-          });
-          _controller.finishLoad(IndicatorResult.noMore);
-        }
+        final isNext = result.pageSize * currentPage >= result.total;
+        /// 这个组建好像有bug，不手动这些none后续无法触发下一页
+        _controller.finishLoad(isNext ? IndicatorResult.noMore : IndicatorResult.none);
         setState(() {
           list.addAll(result.data);
+          hasNextPage = !isNext;
           // list = newList.$1;
         });
+      }).catchError((_) {
+        _controller.finishLoad(IndicatorResult.fail);
       });
   }
 
   /// 刷新数据
   Future<void> onRefresh() async {
-    currentPage = 1;
+    currentPage = 0;
     _controller.finishLoad(IndicatorResult.none);
     setState(() {
       hasNextPage = true;
@@ -170,11 +171,14 @@ class _RecordListState extends State<RecordList> {
   /// 去详情页
   void goDetail(RecordItem it) {
     Navigator.of(context)
-        .push(MaterialPageRoute(
-            builder: (_) => ExpenseDetailScreen(expenseId: it.id)))
-        .then((_) {
-      getData();
-    });
+      .push<bool?>(MaterialPageRoute(
+          builder: (_) => ExpenseDetailScreen(expenseId: it.id)));
+      // .then((isChange) {
+      //   /// 如果有修改则刷新列表;
+      //   if (isChange == true) {
+      //     onRefresh();
+      //   }
+      // });
   }
   @override
   void initState() {
@@ -192,6 +196,10 @@ class _RecordListState extends State<RecordList> {
 
   @override
   Widget build(BuildContext context) {
+    final appContent = Theme.of(context);
+    ref.listen(refreshHomeProvider, (_, _1) {
+      onRefresh();
+    });
     return EasyRefresh(
       controller: _controller,
       onRefresh: onRefresh,
@@ -205,8 +213,10 @@ class _RecordListState extends State<RecordList> {
           return ListTile(
             onTap: () { goDetail(it); },
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.16),
-              child: Icon(it.icon.isEmpty
+              backgroundColor: appContent.primaryColor.withValues(alpha: 0.16),
+              child: Icon(
+                // color: appContent.primaryColor,
+                it.icon.isEmpty
                   ? Icons.wallet_giftcard
                   : IconData(int.parse(it.icon),
                       fontFamily: Icons.abc.fontFamily)),
@@ -214,8 +224,8 @@ class _RecordListState extends State<RecordList> {
             title: Text(it.amount.toStringAsFixed(2)),
             subtitle: Text(it.remark,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall!
-                .copyWith(color: Theme.of(context).dividerColor),
+              style: appContent.textTheme.bodySmall!
+                .copyWith(color: appContent.dividerColor),
             ),
             trailing: Column(
               crossAxisAlignment: CrossAxisAlignment.end,

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:i_account/utils/date.dart';
 import 'package:sqflite/sqflite.dart';
 import '../model/record.dart';
@@ -44,20 +42,23 @@ class DBManager {
           "is_deleted INTEGER DEFAULT 0);"; // 是否已删除
       db.execute(dreamTable).then((_) {
         db.rawInsert(
-            "INSERT INTO category(id, name,type,icon,sort_num,updated_at) VALUES"
+            "INSERT INTO category(id, name, type, icon, sort_num,updated_at) VALUES"
             "(1,'餐饮',1,'58674',0,'2025-03-07T01:14:13.732172'),"
             "(2,'购物',1,'58780',1,'2025-03-07T01:14:13.732670'),"
             "(3,'日用',1,'58255',2,'2025-03-07T01:14:13.732710'),"
             "(4,'交通',1,'57815',3,'2025-03-07T01:14:13.732737'),"
-            "(5,'蔬菜',1,'58259',4,'2025-03-07T01:14:13.732759'),"
-            "(6,'水果',1,'58261',5,'2025-03-07T01:14:13.732787'),"
+            "(5,'生活居家',1,'58259',4,'2025-03-07T01:14:13.732759'),"
+            "(6,'捐款',1,'58261',5,'2025-03-07T01:14:13.732787'),"
             "(7,'零食',1,'57632',6,'2025-03-07T01:14:13.732812'),"
             "(8,'运动',1,'57820',7,'2025-03-07T01:14:13.733289'),"
             "(9,'娱乐',1,'58381',8,'2025-03-07T01:14:13.733317'),"
             "(10,'通讯',1,'58530',9,'2025-03-07T01:14:13.733342'),"
-            "(11,'服饰',1,'57693',10,'2025-03-07T01:14:13.733369'),"
-            "(12,'美容',1,'57938',11,'2025-03-07T01:14:13.733396'),"
-            "(13,'其他',1,'57939',99,'2025-03-07T01:14:13.733396');");
+            "(11,'红包',1,'57693',10,'2025-03-07T01:14:13.733369'),"
+            "(12,'医疗',1,'57938',11,'2025-03-07T01:14:13.733396'),"
+            "(14,'工资',2,'985044',0,'2025-03-07T01:14:13.733396'),"
+            "(15,'奖金',2,'57662',1,'2025-03-07T01:14:13.733396'),"
+            "(16,'投资',2,'63720',2,'2025-03-07T01:14:13.733396'),"
+            "(17,'其他',2,'983263',99,'2025-03-07T01:14:13.733396');");
       });
 
       /// 记录项表
@@ -168,7 +169,7 @@ class DBManager {
 
   /// 查询记录列表
   Future<PageResult<RecordItem>> selectRecordList(
-      [CategoryType categoryType = CategoryType.expense,
+      [CategoryType? categoryType,
       int page = 1,
       int? billYear,
       int? billMonth,
@@ -176,18 +177,26 @@ class DBManager {
       String orderType = 'DESC']) async {
     var limitStart = getPageLimitStart(page);
     String data =
-        "SELECT r.*, c.icon FROM `records` r LEFT JOIN category c ON r.category_id = c.id WHERE category_type = ?";
+        "SELECT r.*, c.icon FROM `records` r LEFT JOIN category c ON r.category_id = c.id";
     // [categoryType, billYear, billMonth, limitStart, pageSize]
-    String countStr = "SELECT COUNT(*) FROM `records` WHERE category_type = ${categoryType.state}";
-    List<Object> query = [categoryType.state];
+    String countStr = "SELECT COUNT(*) FROM `records`";
+    List<Object> query = [];
+    var join = " WHERE";
+    if (categoryType != null) {
+      data += "$join category_type = ?";
+      countStr += "$join category_type = ${categoryType.state}";
+      join = " AND";
+      query.add(categoryType.state);
+    }
     if (billYear != null) {
-      data += " AND bill_year = ?";
-      countStr += " AND bill_year = $billYear";
+      data += "$join bill_year = ?";
+      countStr += "$join bill_year = $billYear";
+      join = " AND";
       query.add(billYear);
     }
     if (billMonth != null) {
-      data += " AND bill_month = ?";
-      countStr += " AND bill_month = $billMonth";
+      data += "$join bill_month = ?";
+      countStr += "$join bill_month = $billMonth";
       query.add(billMonth);
     }
     data += " ORDER BY `$order` $orderType LIMIT ?, ?";

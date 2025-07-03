@@ -26,13 +26,13 @@ class SettingsPage extends ConsumerWidget {
           icon: 'assets/icon/ic_about.png',
           title: 'mine.email'.tr(),
           content: '***@***.com'),
-      _SettingItem(
-        icon: 'assets/icon/ic_about.png',
-        title: 'mine.changePassword'.tr(),
-        action: () {
-          nav.pushNamed('/2048');
-        }
-      ),
+      // _SettingItem(
+      //   icon: 'assets/icon/ic_about.png',
+      //   title: 'mine.changePassword'.tr(),
+      //   action: () {
+      //     nav.pushNamed('/2048');
+      //   }
+      // ),
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
           title: 'mine.theme_settings'.tr(),
@@ -59,12 +59,12 @@ class SettingsPage extends ConsumerWidget {
             await showModal(context, '完成设置，应用即将重载！');
             nav.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const MyHomePage()), (_) => false);
           }),
-      _SettingItem(
-          icon: 'assets/icon/ic_about.png',
-          title: 'mine.privacy'.tr(),
-          action: () {
-            // toWebView('https://h5.bwcj.com/bwgf/doc/privacy');
-          }),
+      // _SettingItem(
+      //     icon: 'assets/icon/ic_about.png',
+      //     title: 'mine.privacy'.tr(),
+      //     action: () {
+      //       toWebView('https://h5.bwcj.com/bwgf/doc/privacy');
+      //     }),
       _SettingItem(
           icon: 'assets/icon/ic_about.png',
           title: 'mine.about_us'.tr(),
@@ -90,7 +90,7 @@ class SettingsPage extends ConsumerWidget {
           title: const Text('settings').tr(),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 48),
           child: ListView.builder(
             itemCount: list.length + 1,
             itemBuilder: (_, index) {

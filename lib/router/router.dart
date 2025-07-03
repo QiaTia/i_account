@@ -32,6 +32,10 @@ Map<String, Widget Function(BuildContext)> routes = {
   '/budget': (_) => const BudgetScreen(),
   '/bill': (_) => const BalanceScreen(),
   '/bill/chart': (_) => const ExpenditureScreen(),
-  '/details/detail': (_) => const ExpenseDetailScreen(),
+  '/details/detail/:id': (context) {
+    final String? idString = ModalRoute.of(context)?.settings.arguments as String?;
+    final int expenseId = int.tryParse(idString ?? '') ?? 1; // 默认值为1，如果转换失败
+    return ExpenseDetailScreen(expenseId: expenseId);
+  },
   '/account/new': (_) => const ExpenseScreenPage(),
 };
