@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/common/Widget/base.dart';
+import 'package:i_account/common/base/item_icon.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/set.dart';
 import 'package:i_account/store/sql.dart';
@@ -94,12 +95,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                             itemBuilder: (context, index) {
                               final item = rankingData[index];
                               return ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: appContent.primaryColor.withValues(alpha: 0.16),
-                                  child: Icon(IconData(int.parse(item.icon),
-                                      fontFamily: Icons.abc.fontFamily),
-                                      color: appContent.colorScheme.primary),
-                                ),
+                                leading: CircleItemIcon(name: item.icon),
                                 title: Text(item.name),
                                 subtitle: Text(
                                     '${formatNumber(item.totalAmount / totalAmount * 100)} %'),
@@ -625,10 +621,12 @@ class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
             .map((value) => PopupMenuItem(value: value, child: Text(value.tr)))
             .toList(),
         onSelected: onSelected,
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(selectedCategoryType.tr),
-          const Icon(Icons.arrow_drop_down)
-        ]),
+        child: SizedBox(child: Row(
+          mainAxisAlignment: MainAxisAlignment.center, 
+          children: [
+            Text(selectedCategoryType.tr),
+            const Icon(Icons.arrow_drop_down)
+          ]),)
       ),
       backgroundColor: Colors.transparent,
     );

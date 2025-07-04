@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:i_account/common/base/item_icon.dart';
 import 'package:i_account/common/show_modal_bottom_detail/show_modal_bottom_detail.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
@@ -145,7 +146,7 @@ class RecordItemWidget extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(IconData(int.parse(item.icon), fontFamily: Icons.abc.fontFamily),
+        Icon(getItemIcon(item.icon),
             color: Theme.of(context).colorScheme.primary, size: 28),
         const SizedBox(height: 4),
         Text(

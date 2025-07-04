@@ -153,21 +153,21 @@ class _DataContentState extends State<_DataContent> {
             columnSpacing: 0,
             columns:  <DataColumn>[
               DataColumn(
-                  columnWidth: const IntrinsicColumnWidth(flex: 0.4),
+                  // columnWidth: const IntrinsicColumnWidth(flex: 0.4),
                   label: Text('account.month'.tr())),
               DataColumn(
                   // numeric: true,
                   headingRowAlignment: MainAxisAlignment.center,
-                  columnWidth: const IntrinsicColumnWidth(flex: 1),
+                  // columnWidth: const IntrinsicColumnWidth(flex: 1),
                   label: Text('income'.tr())),
               DataColumn(
                   // numeric: true,
                   headingRowAlignment: MainAxisAlignment.center,
-                  columnWidth: const IntrinsicColumnWidth(flex: 1),
+                  // columnWidth: const IntrinsicColumnWidth(flex: 1),
                   label: Text('expense'.tr())),
               DataColumn(
                   numeric: true,
-                  columnWidth: const IntrinsicColumnWidth(flex: 1),
+                  // columnWidth: const IntrinsicColumnWidth(flex: 1),
                   label: Text('account.surplus'.tr())),
             ],
             rows: List.generate(data.length, (index) {

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/common/base/item_icon.dart';
 import 'package:i_account/common/widget/base.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
@@ -212,15 +213,7 @@ class _RecordListState extends ConsumerState<RecordList> {
           var it = list[index];
           return ListTile(
             onTap: () { goDetail(it); },
-            leading: CircleAvatar(
-              backgroundColor: appContent.primaryColor.withValues(alpha: 0.16),
-              child: Icon(
-                // color: appContent.primaryColor,
-                it.icon.isEmpty
-                  ? Icons.wallet_giftcard
-                  : IconData(int.parse(it.icon),
-                      fontFamily: Icons.abc.fontFamily)),
-            ),
+            leading: CircleItemIcon(name: it.icon),
             title: Text(it.amount.toStringAsFixed(2)),
             subtitle: Text(it.remark,
               overflow: TextOverflow.ellipsis,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/common/base/item_icon.dart';
 import 'package:i_account/model/enum.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/set.dart';
@@ -167,11 +168,7 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
       SizedBox(
           height: 120,
           child: Column(children: [
-            Icon(
-                record.icon.isEmpty
-                    ? Icons.wallet_giftcard
-                    : IconData(int.parse(record.icon),
-                        fontFamily: Icons.abc.fontFamily),
+            Icon(getItemIcon(record.icon),
                 color: Theme.of(context).colorScheme.primary,
                 size: 60),
             // Icon(Icons.wallet_giftcard_rounded, size: 60, color: Theme.of(context).colorScheme.onPrimary),

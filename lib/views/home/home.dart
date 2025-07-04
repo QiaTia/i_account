@@ -18,7 +18,6 @@ class MyHomePage extends ConsumerWidget {
     final appBar = AppBar(
       backgroundColor: Colors.transparent,
       title: const Text('appTitle').tr(),
-
       /// 淡出的状态栏渐变背景
       // flexibleSpace: Container(
       //   decoration: BoxDecoration(
@@ -34,15 +33,6 @@ class MyHomePage extends ConsumerWidget {
       //   ),
       // ),
     );
-    void onTap() async {
-      // showRecordDialog(context: context);
-      // onFileImportRecord().then((_) {
-      //   // 导入成功
-      //   // 刷新账单列表
-      //   // ref.read(billListProvider.notifier).refresh();
-      // });
-    }
-
     var safeTopAreaHeight =
         appBar.preferredSize.height + MediaQuery.of(context).padding.top;
     /// 把顶部安全距离存储到统一变量里面
@@ -105,7 +95,6 @@ class MyHomePage extends ConsumerWidget {
                   // const AnimatedText(),
                   // FilledButton(
                   //   onPressed: () {
-                  //     // onTap();
                   //     ref.read(clickCountProvider.notifier).increment();
                   //   },
                   //   child: const Text("mine.about").tr()),
