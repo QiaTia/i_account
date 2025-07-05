@@ -11,7 +11,7 @@ Map<String, IconData> _itemIcons = {
   // 交通
   'transport': Icons.directions_car,
   // 生活居家
-  'living': Icons.home,
+  'living': Icons.local_florist,
   // 捐款
   'donation': Icons.favorite,
   // 零食
@@ -27,13 +27,13 @@ Map<String, IconData> _itemIcons = {
   // 医疗
   'medical': Icons.local_hospital,
   // 工资
-  'salary': Icons.attach_money,
+  'salary': Icons.wallet,
   // 奖金
   'bonus': Icons.monetization_on,
   // 投资
   'investment': Icons.trending_up,
   // 其他
-  'other': Icons.more_horiz,
+  'other': Icons.read_more_rounded,
   // 账单
   'bill': Icons.receipt,
   // 预算

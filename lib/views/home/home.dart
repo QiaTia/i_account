@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
-import 'package:i_account/utils/read_file.dart';
 import 'package:i_account/views/home/Widget/datePicker.dart';
 import 'package:i_account/views/home/Widget/record.dart';
 import 'package:i_account/views/details/details.dart';

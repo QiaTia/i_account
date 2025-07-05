@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/common/Widget/base.dart';
@@ -20,8 +21,12 @@ class ExpenditureScreen extends StatefulWidget {
 class _ExpenditureScreenState extends State<ExpenditureScreen> {
   final DBManager $dbManager = DBManager();
 
-  /// 默认选中“支出”
+  /// 默认选中 “支出”
   CategoryType selectedCategoryType = CategoryType.expense;
+  /// 选中的日期范围
+  (String, String, int) selectedDateRange = ('', '', 0);
+
+  /// 总金额
   double totalAmount = 0.0;
 
   /// 按日期归档数据
@@ -32,13 +37,13 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   /// 选择类别
   void onSelected(CategoryType value) {
-    setState(() {
-      selectedCategoryType = value;
-    });
+    setState(() { selectedCategoryType = value; });
+    initData(selectedDateRange);
   }
 
   /// 初始化数据
   void initData((String, String, int) selected) {
+    selectedDateRange = selected;
     $dbManager
         .selectRecordByCondition(
             selected.$1, selected.$2, selectedCategoryType, selected.$3)
@@ -72,9 +77,8 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Text('总支出: ${formatNumber(totalAmount)} 元'),
-                        Text(
-                            '平均值: ${formatNumber(totalAmount / groupedData.length)} 元')
+                        Text('${'chart.total'.tr()}: ${'account.unit'.tr()}${formatNumber(totalAmount)}'),
+                        Text('${'chart.average'.tr()}: ${'account.unit'.tr()}${formatNumber(totalAmount / groupedData.length)}')
                       ]),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -83,10 +87,10 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                       child: groupedData.isEmpty
                           ? const Center(child: CircularProgressIndicator())
                           : LineChartWidget(data: groupedData)),
-                  const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text('支出排行榜',
-                          style: TextStyle(fontWeight: FontWeight.bold))),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text('${selectedCategoryType.tr} ${'account.month.rankings'.tr()}',
+                          style: const TextStyle(fontWeight: FontWeight.bold))),
                   Expanded(
                     child: rankingData.isNotEmpty
                         ? ListView.builder(
@@ -100,7 +104,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                                 subtitle: Text(
                                     '${formatNumber(item.totalAmount / totalAmount * 100)} %'),
                                 trailing:
-                                    Text('${formatNumber(item.totalAmount)} 元'),
+                                    Text('${'account.unit'.tr()}${formatNumber(item.totalAmount)}'),
                               );
                             },
                           )
@@ -125,9 +129,24 @@ class HeaderWidget extends StatefulWidget {
 class _HeaderWidgetState extends State<HeaderWidget> {
   DateTime selectedDate = DateTime.now();
 
+  //// 月份列表
+  final monthList = [
+    'month.january'.tr(),
+    'month.february'.tr(),
+    'month.march'.tr(),
+    'month.april'.tr(),
+    'month.may'.tr(),
+    'month.june'.tr(),
+    'month.july'.tr(),
+    'month.august'.tr(),
+    'month.september'.tr(),
+    'month.october'.tr(),
+    'month.november'.tr(),
+    'month.december'.tr()
+  ];
   /// 选中的日期类型
   int selectedTabIndex = 0;
-  final List<String> tabs = ['周', '月', '年'];
+  final List<String> tabs = ['date.week'.tr(), 'date.month'.tr(), 'date.year'.tr()];
 
   /// 选中日期键
   int selectedIndex = 0;
@@ -137,10 +156,22 @@ class _HeaderWidgetState extends State<HeaderWidget> {
       formatDate(selectedDate, showLen: selectedTabIndex == 0 ? 2 : 1);
   List<(String, String, int)> dateItems = [];
   List<String> get dateStringItems =>
-      dateItems.map((e) => "${e.$3}${tabs[selectedTabIndex]}").toList();
-  void onSelectDate(int index) {
-    var selected = dateItems[index];
-    widget.onDate?.call((selected.$1, selected.$2, selectedTabIndex));
+      dateItems.map((e) => parseDateString(e.$3)).toList();
+
+  
+  String parseDateString(int current) {
+    /// 解析日期字符串
+    switch (selectedTabIndex) {
+      case 0:
+        return '$current`${'date.week'.tr()}';
+      case 1:
+        return monthList[current];
+      case 2:
+        return current.toString();
+      default:
+        return '';
+    }
+    
   }
 
   /// 选择月份
@@ -202,6 +233,11 @@ class _HeaderWidgetState extends State<HeaderWidget> {
           });
         }
     }
+  }
+  /// 选择日期
+  void onSelectDate(int index) {
+    var selected = dateItems[index];
+    widget.onDate?.call((selected.$1, selected.$2, selectedTabIndex));
   }
 
   @override

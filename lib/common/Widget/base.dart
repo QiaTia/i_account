@@ -194,11 +194,14 @@ class ListItem extends StatelessWidget {
 
   /// 圆角
   final double? borderRadius;
+  /// IconWidget
+  final Widget? iconWidget;
 
   const ListItem({
     super.key,
     required this.name,
     this.icon = '',
+    this.iconWidget,
     this.body,
     this.right,
     this.borderRadius = 0,
@@ -216,12 +219,12 @@ class ListItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 22),
               child: Column(children: [
                 Row(children: [
-                  icon.isNotEmpty
+                  // 注意：这里的 `icon` 应当是一个字符串
+                  icon.isNotEmpty || iconWidget != null
                       ? Padding(
                           padding: const EdgeInsets.only(right: 11),
-                          child: Image.asset(icon, width: 16, height: 18))
+                          child: iconWidget ?? Image.asset(icon, width: 16, height: 18))
                       : Empty,
-                  // 注意：这里的 `icon` 应当是一个字符串
                   Text(name, style: Theme.of(context).textTheme.bodyMedium),
                   Expanded(
                       child: Row(

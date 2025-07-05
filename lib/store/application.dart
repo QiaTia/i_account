@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/store/storage.dart';
 import 'package:i_account/themes/multiple_theme_mode.dart';
 
-const startLocale = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+/// 应用程序支持的语言列表
+const List<Locale> supportedLocales = [
+  Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'), // 简体中文
+  Locale.fromSubtags(languageCode: 'en'), // 英语
+  Locale.fromSubtags(languageCode: 'ja'), // 日语
+];
 
 
 final currentApplicationProvider = StateNotifierProvider<ApplicationController, Application>(
@@ -18,12 +23,12 @@ class ApplicationController extends StateNotifier<Application> {
   /// 设置主题
   void setTheme(MultipleThemeMode theme) {
     Storage.saveTheme(theme);
-    // state.theme = theme;
     state = state.copyWith(theme: theme);
   }
   /// 设置语言
-  void setLocale(Locale locale) {
-    // Storage.saveLocale(locale);
+  void setLocale(Locale? locale) {
+    Storage.saveLocale(locale);
+    state.locale = null; // 清除之前的语言设置
     state = state.copyWith(locale: locale);
   }
   /// 设置主题模式
@@ -46,11 +51,11 @@ class Application {
   /// 当前应用主题
   MultipleThemeMode theme;
   /// 当前语言
-  Locale locale;
+  Locale? locale;
   /// 当前主题模式
   ThemeMode themeMode;
 
-  Application({this.theme = MultipleThemeMode.kDefault, this.locale = startLocale, this.themeMode = ThemeMode.system});
+  Application({this.theme = MultipleThemeMode.kDefault, this.locale, this.themeMode = ThemeMode.system});
 
   Application copyWith({
     MultipleThemeMode? theme,
@@ -69,7 +74,8 @@ class Application {
 Future<Application> loadApplication() async {
   final theme = await Storage.getTheme() ?? MultipleThemeMode.kDefault;
   final themeMode = await Storage.getThemeMode();
-  return Application(theme: theme, locale: startLocale, themeMode: themeMode);
+  final locale = await Storage.getLocale();
+  return Application(theme: theme, locale: locale, themeMode: themeMode);
 }
 
 /// 当前主题模式

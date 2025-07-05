@@ -8,6 +8,7 @@ import '../utils/utils.dart';
 
 const String _themeModeKey = 'theme_mode';
 const String _themeNameKey = 'theme_name';
+const String _languageKey = 'language';
 
 
 class Storage {
@@ -67,6 +68,28 @@ class Storage {
   /// Removes the theme mode from shared preferences.
   static Future<void> removeThemeMode() async {
     await remove(_themeModeKey);
+  }
+  /// Saves the locale as a string in shared preferences.
+  static Future<void> saveLocale(Locale? locale) async {
+    log('Saving locale: ${locale.toString()}');
+    if (locale == null) {
+      await remove(_languageKey);
+      return;
+    }
+    final language = '${locale.languageCode}_${locale.scriptCode}';
+    await saveString(_languageKey, language);
+  }
+  /// Retrieves the locale from shared preferences.
+  static Future<Locale?> getLocale() async {
+    final language = await getString(_languageKey);
+    if (language == null) return null;
+    try {
+      final parts = language.split('_');
+      return Locale.fromSubtags(languageCode: parts[0], scriptCode: parts[1]);
+    } catch (e) {
+      log('Error parsing locale: $e');
+      return null;
+    }
   }
 }
 

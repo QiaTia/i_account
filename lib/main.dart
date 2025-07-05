@@ -9,8 +9,8 @@ import 'store/sql.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  DBManager().openDB('db');
-  await EasyLocalization.ensureInitialized();
+  EasyLocalization.ensureInitialized();
+  await DBManager().openDB('db');
   /// 加载本地配置直接复写
   final app = await loadApplication();
   runApp(ProviderScope(
@@ -18,11 +18,11 @@ void main() async {
       currentApplicationProvider.overrideWith((ref) => ApplicationController(app)),
     ],
     child: EasyLocalization(
-      supportedLocales: const [startLocale, Locale('en')],
+      supportedLocales: supportedLocales,
       // <-- change the path of the translation files
       path: 'assets/translations',
-      startLocale: startLocale,
-      fallbackLocale: const Locale('en'),
+      startLocale: app.locale,
+      fallbackLocale: supportedLocales[1],
       child: const MyApp())));
 }
 

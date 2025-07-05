@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:i_account/common/base/item_icon.dart';
-import 'package:i_account/common/show_modal_bottom_detail/show_modal_bottom_detail.dart';
+import 'package:i_account/common/show_modal/show_modal_bottom_detail.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
 import 'package:i_account/utils/date.dart';

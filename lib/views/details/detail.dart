@@ -82,11 +82,15 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
     Navigator.of(context).pop();
   }
   /// 编辑弹窗
-  void onEdit() async {
+  void onEdit() {
     if (expenseData != null) {
       RecordDetail info = expenseData!;
-      await showRecordDialog(
-        context: context, 
+      showRecordDialog(
+        context: context,
+        onDone: () {
+          isChange = true;
+          getExpenseDetail();
+        },
         record: RecordItem(
           icon: info.icon, 
           id: info.id, 
@@ -97,8 +101,6 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
           billDate: info.billDate, 
           remark: info.remark,
         ));
-      getExpenseDetail();
-      isChange = true;
     }
   }
 
