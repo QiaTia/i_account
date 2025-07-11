@@ -39,6 +39,8 @@
   "mine.theme_appearance_dark": "ダーク",
   "mine.data_import": "データインポート",
   "mine.data_import_hint": "ローカルファイルから請求データをインポート",
+  "mine.data_import_alipay": "Import Alipay Bill Data",
+  "mine.data_import_wechat": "Import Wechat Bill Data",
   "mine.follow": "システムに従う",
   "mine.language_confirm_hint": "設定が完了しました。アプリが再起動します。",
   "date.week": "週",

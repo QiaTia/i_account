@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/store/application.dart';
 
 /// 底部详情内容弹出
-Future<T?> showModalBottomDetail<T>({required BuildContext context, required Widget child, bool isDark = false}) {
+Future<T?> showModalBottomDetail<T>({required BuildContext context, required Widget child, bool isDark = false, double? height}) {
   final nav = Navigator.of(context);
 
   return showModalBottomSheet<T>(
@@ -17,6 +17,7 @@ Future<T?> showModalBottomDetail<T>({required BuildContext context, required Wid
         /// 获取当前主题颜色
         final primaryColor = ref.watch(currentApplicationProvider.select((app) => app.theme.state.lightTheme().primaryColor));
         return Container(
+          height: height,
           margin: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(
             children: [

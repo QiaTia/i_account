@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
-import 'package:i_account/views/home/Widget/datePicker.dart';
+import 'package:i_account/views/home/Widget/date_picker.dart';
 import 'package:i_account/views/home/Widget/record.dart';
 import 'package:i_account/views/details/details.dart';
 import '../../store/set.dart';
@@ -282,11 +282,12 @@ class _NavDataContainer extends State<NavDataContainer> {
             onTap: () {
               onMenuClick(CategoryType.income);
             },
-            child: Column(children: [
-              const Text('income').tr(),
-              const SizedBox(height: 4),
-              Text('￥${navList[0]}',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Column(
+              spacing: 4,
+              children: [
+                const Text('income').tr(),
+                Text('￥${navList[0]}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
             ]),
           ),
           InkWell(
@@ -294,9 +295,9 @@ class _NavDataContainer extends State<NavDataContainer> {
                 onMenuClick(CategoryType.expense);
               },
               child: Column(
+                spacing: 4,
                 children: [
                   const Text('expense').tr(),
-                  const SizedBox(height: 4),
                   Text('￥${navList[1]}',
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],

@@ -39,6 +39,8 @@
   "mine.theme_appearance_dark": "Dark",
   "mine.data_import": "Data Import",
   "mine.data_import_hint": "Import bill data from local file",
+  "mine.data_import_alipay": "Import Alipay Bill Data",
+  "mine.data_import_wechat": "Import Wechat Bill Data",
   "mine.follow": "Follow System",
   "mine.language_confirm_hint": "Settings completed, the application will reload!",
   "date.week": "Week",

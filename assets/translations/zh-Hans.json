@@ -39,6 +39,8 @@
   "mine.theme_appearance_dark": "深色",
   "mine.data_import": "数据导入",
   "mine.data_import_hint": "从本地文件导入账单数据",
+  "mine.data_import_alipay": "导入支付宝账单数据",
+  "mine.data_import_wechat": "导入微信支付账单数据",
   "mine.follow": "跟随系统",
   "mine.language_confirm_hint": "完成设置，应用即将重载！",
   "date.week": "周",

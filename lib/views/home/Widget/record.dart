@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +8,7 @@ import 'package:i_account/common/show_modal/show_modal_bottom_detail.dart';
 import 'package:i_account/model/record.dart';
 import 'package:i_account/store/sql.dart';
 import 'package:i_account/utils/date.dart';
-import './datePicker.dart';
+import 'date_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/store/set.dart';
 
@@ -46,7 +48,7 @@ class CustomPopup extends StatelessWidget {
   const CustomPopup({super.key});
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height / 2;
+    double screenHeight = min(MediaQuery.of(context).size.height / 2, 400);
     return DefaultTabController(
         length: 2,
         child: SizedBox(
