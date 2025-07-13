@@ -1,18 +1,28 @@
-
 import 'package:flutter/material.dart';
 import 'package:i_account/common/widget/base.dart';
 import 'package:i_account/utils/read_file.dart';
+import 'package:i_account/store/set.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ImportAlipay extends StatefulWidget {
+class ImportAlipay extends ConsumerStatefulWidget {
   const ImportAlipay({super.key});
   @override
-  _ImportAlipayState createState() => _ImportAlipayState();
+  ConsumerState<ImportAlipay> createState() => _ImportAlipayState();
 }
 
-class _ImportAlipayState extends State<ImportAlipay> {
+class _ImportAlipayState extends ConsumerState<ImportAlipay> {
+  late RefreshHome refreshHome;
   /// 点击导入
   void onFileImport() {
-    onFileImportRecord();
+    onFileImportRecord().then((_)  {
+      refreshHome.update();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    refreshHome = ref.read(refreshHomeProvider.notifier);
   }
 
   @override

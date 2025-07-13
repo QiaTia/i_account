@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:i_account/common/base/animated.dart';
 import 'package:i_account/common/base/item_icon.dart';
 import 'package:i_account/common/widget/base.dart';
 import 'package:i_account/model/record.dart';
@@ -21,13 +24,20 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  /// 排序方式: 0: 按时间 1: 按金额
+  /// 排序内容: 0: 按时间 1: 按金额
   int sortMode = 0;
+  /// 排序方式 是否降序
+  bool isDesc = true;
   /// 选择排序方式
-  void onSelected(String selected) {
-    print('Selected: $selected');
+  void onSelected(int selected) {
     setState(() {
-      sortMode = _sortKeyList.indexOf(selected);
+      sortMode = selected;
+    });
+  }
+  /// 切换排序方式
+  void onSortSwitch() {
+    setState(() {
+      isDesc = !isDesc;
     });
   }
   @override
@@ -65,16 +75,27 @@ class _DetailPageState extends State<DetailPage> {
                     children: [
                       Text('$categoryStr ${"account.month.rankings".tr()}',
                           style: Theme.of(context).textTheme.titleMedium),
-                      ButtonGroupWidget(
-                        items: _sortKeyList,
-                        onTap: onSelected,
-                      ),
+                      Row(
+                        spacing: 4,
+                        children: [
+                          IconButton(
+                            onPressed: onSortSwitch,
+                            icon: Transform.rotate(
+                              angle: isDesc ? 0 : -math.pi,
+                              origin: Offset.zero,
+                              child: const Icon(Icons.sort))),
+                          ButtonGroupWidget(
+                            items: _sortKeyList,
+                            current: _sortKeyList[sortMode],
+                            onTap: onSelected,
+                          )
+                      ])
                     ])),
             Expanded(
               child: DecoratedBox(
                   decoration: BoxDecoration(color: bgCardColor),
                   child:
-                      RecordList(selectDate: selectDate, type: categoryType, sortMode: sortMode)),
+                      RecordList(selectDate: selectDate, type: categoryType, isDesc: isDesc, sortMode: sortMode)),
             ),
           ],
         ),
@@ -121,8 +142,10 @@ class RecordList extends ConsumerStatefulWidget {
   final DateTime selectDate;
   final CategoryType? type;
   final int sortMode;
+  /// 筛选模式 是否降序
+  final bool isDesc;
 
-  const RecordList({super.key, required this.selectDate, this.type, this.sortMode = 0 });
+  const RecordList({super.key, required this.selectDate, this.type, this.isDesc = true, this.sortMode = 0 });
   @override
   ConsumerState<RecordList> createState() => _RecordListState();
 }
@@ -142,8 +165,13 @@ class _RecordListState extends ConsumerState<RecordList> {
       return;
     }
     db
-      .selectRecordList(widget.type, ++currentPage, widget.selectDate.year,
-          widget.selectDate.month, widget.sortMode == 0 ? 'bill_date' : 'amount' )
+      .selectRecordList(widget.type,
+          ++currentPage,
+          widget.selectDate.year,
+          widget.selectDate.month,
+          widget.sortMode == 0 ? 'bill_date' : 'amount',
+          widget.isDesc ? 'DESC' : 'ASC'
+        )
       .then((result) {
         final isNext = result.pageSize * currentPage >= result.total;
         /// 这个组建好像有bug，不手动这些none后续无法触发下一页
@@ -170,7 +198,7 @@ class _RecordListState extends ConsumerState<RecordList> {
     getData();
   }
   /// 去详情页
-  void goDetail(RecordItem it) {
+  void goDetail(RecordItem it, BuildContext context) {
     Navigator.of(context)
       .push<bool?>(MaterialPageRoute(
           builder: (_) => ExpenseDetailScreen(expenseId: it.id)));
@@ -190,7 +218,7 @@ class _RecordListState extends ConsumerState<RecordList> {
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
     /// 时间或者排序方式发生变化
-    if (oldWidget.selectDate != widget.selectDate || oldWidget.sortMode != widget.sortMode) {
+    if (oldWidget.selectDate != widget.selectDate || oldWidget.isDesc != widget.isDesc || oldWidget.sortMode != widget.sortMode) {
       onRefresh();
     }
   }
@@ -212,7 +240,7 @@ class _RecordListState extends ConsumerState<RecordList> {
         itemBuilder: (context, index) {
           var it = list[index];
           return ListTile(
-            onTap: () { goDetail(it); },
+            onTap: () { goDetail(it, context); },
             leading: CircleItemIcon(name: it.icon),
             title: Text(it.amount.toStringAsFixed(2)),
             subtitle: Text(it.remark,
@@ -235,105 +263,47 @@ class _RecordListState extends ConsumerState<RecordList> {
 }
 
 /// animation button group
-class ButtonGroupWidget extends StatefulWidget {
+class ButtonGroupWidget extends StatelessWidget {
   final List<String> items;
-  final Function(String) onTap;
-  final String? current;
+  final Function(int) onTap;
+  final String current;
 
   const ButtonGroupWidget({
     super.key,
     required this.items,
     required this.onTap,
-    this.current,
+    required this.current,
   });
-
-  @override
-  _ButtonGroupWidgetState createState() => _ButtonGroupWidgetState();
-}
-
-class _ButtonGroupWidgetState extends State<ButtonGroupWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  String? _currentSelection;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentSelection = widget.current ?? widget.items.first;
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    )..addListener(() {
-        setState(() {});
-      });
-  }
-
-  @override
-  void didUpdateWidget(covariant ButtonGroupWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.current != widget.current) {
-      _currentSelection = widget.current;
-      _animationController.reset();
-      _animationController.forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
+ 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 4.0,
-      runSpacing: 4.0,
-      children: widget.items.map((item) {
-        bool isSelected = item == _currentSelection;
-        var smallTextColor = Theme.of(context).textTheme.bodySmall?.color ?? const Color(0xFF999999);
-        Color backgroundColor = Theme.of(context).cardColor;
-        Color textColor = isSelected
-            ? Theme.of(context).primaryColor
-            : smallTextColor;
-
-        return ScaleTransition(
-          scale: Tween(begin: 0.9, end: 1.0).animate(CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeInOut,
-          )),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _currentSelection = item;
-              });
-              _animationController.reset();
-              _animationController.forward();
-              widget.onTap(item);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: textColor.withValues(alpha: 0.64),
-                  width: 1.0,
-                ),
-              ),
-              child: Text(
-                item.tr(),
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 14,
-                ),
-              ),
+    final theme = Theme.of(context);
+    Color backgroundColor = theme.cardColor;
+    Color textColor = theme.primaryColor;
+    return InkWell(
+        onTap: () {
+          final index = items.indexOf(current) == 1 ? 0: 1;
+          onTap(index);
+        },
+        child: ClipRect(child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: textColor.withValues(alpha: 0.64),
+              width: 1.0,
             ),
           ),
-        );
-      }).toList(),
-    );
+          child: Row(children: [AnimatedText(
+              text: current.tr(),
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14,
+              ),
+            ),
+            Icon(Icons.swap_vert_outlined, color: textColor, size: 16),
+          ])
+        )));
   }
 }

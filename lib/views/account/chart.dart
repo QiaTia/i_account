@@ -1,10 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/common/Widget/base.dart';
 import 'package:i_account/common/base/item_icon.dart';
 import 'package:i_account/model/record.dart';
-import 'package:i_account/store/set.dart';
 import 'package:i_account/store/sql.dart';
 import 'package:i_account/utils/date.dart';
 import 'package:i_account/views/home/Widget/date_picker.dart';
@@ -23,8 +21,12 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   /// 默认选中 “支出”
   CategoryType selectedCategoryType = CategoryType.expense;
+
+  /// 日期筛选模式 0 ｜ 1 ｜ 2
+  int dateFilterMode = 0;
+
   /// 选中的日期范围
-  (String, String, int) selectedDateRange = ('', '', 0);
+  (String, String) selectedDateRange = ('', '');
 
   /// 总金额
   double totalAmount = 0.0;
@@ -37,16 +39,25 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   /// 选择类别
   void onSelected(CategoryType value) {
-    setState(() { selectedCategoryType = value; });
+    setState(() {
+      selectedCategoryType = value;
+    });
     initData(selectedDateRange);
   }
 
+  /// 选择时间过滤方式
+  void onSelectedFilterMode(int val) {
+    setState(() {
+      dateFilterMode = val;
+    });
+  }
+
   /// 初始化数据
-  void initData((String, String, int) selected) {
+  void initData((String, String) selected) {
     selectedDateRange = selected;
     $dbManager
         .selectRecordByCondition(
-            selected.$1, selected.$2, selectedCategoryType, selected.$3)
+            selected.$1, selected.$2, selectedCategoryType, dateFilterMode)
         .then((result) {
       // 处理查询结果
       setState(() {
@@ -59,17 +70,15 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appContent = Theme.of(context);
     return Scaffold(
-        appBar: ExpenditureAppBar(
-          selectedCategoryType: selectedCategoryType,
-          onSelected: onSelected,
-        ),
+        appBar: ExpenditureAppBar(onSelected: onSelectedFilterMode),
         body: Column(children: [
-          HeaderWidget(onDate: initData),
+          HeaderWidget(
+              dateFilterMode: dateFilterMode,
+              onDate: initData,
+              onCategoryType: onSelected),
           Expanded(
-            child: Container(
-              color: appContent.cardColor,
+            child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,8 +86,10 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Text('${'chart.total'.tr()}: ${'account.unit'.tr()}${formatNumber(totalAmount)}'),
-                        Text('${'chart.average'.tr()}: ${'account.unit'.tr()}${formatNumber(totalAmount / groupedData.length)}')
+                        Text(
+                            '${'chart.total'.tr()}: ${'account.unit'.tr()}${formatNumber(totalAmount)}'),
+                        Text(
+                            '${'chart.average'.tr()}: ${'account.unit'.tr()}${formatNumber(totalAmount / groupedData.length)}')
                       ]),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -89,7 +100,8 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                           : LineChartWidget(data: groupedData)),
                   Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('${selectedCategoryType.tr} ${'account.month.rankings'.tr()}',
+                      child: Text(
+                          '${selectedCategoryType.tr} ${'account.month.rankings'.tr()}',
                           style: const TextStyle(fontWeight: FontWeight.bold))),
                   Expanded(
                     child: rankingData.isNotEmpty
@@ -103,8 +115,8 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
                                 title: Text(item.name),
                                 subtitle: Text(
                                     '${formatNumber(item.totalAmount / totalAmount * 100)} %'),
-                                trailing:
-                                    Text('${'account.unit'.tr()}${formatNumber(item.totalAmount)}'),
+                                trailing: Text(
+                                    '${'account.unit'.tr()}${formatNumber(item.totalAmount)}'),
                               );
                             },
                           )
@@ -120,8 +132,14 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
 /// 顶部日期选择栏
 class HeaderWidget extends StatefulWidget {
-  final void Function((String, String, int) selected)? onDate;
-  const HeaderWidget({super.key, this.onDate});
+  final int dateFilterMode;
+  final void Function((String, String) selected)? onDate;
+  final void Function(CategoryType val)? onCategoryType;
+  const HeaderWidget(
+      {super.key,
+      required this.dateFilterMode,
+      this.onDate,
+      this.onCategoryType});
   @override
   _HeaderWidgetState createState() => _HeaderWidgetState();
 }
@@ -129,176 +147,161 @@ class HeaderWidget extends StatefulWidget {
 class _HeaderWidgetState extends State<HeaderWidget> {
   DateTime selectedDate = DateTime.now();
 
-  //// 月份列表
-  final monthList = [
-    'month.january'.tr(),
-    'month.february'.tr(),
-    'month.march'.tr(),
-    'month.april'.tr(),
-    'month.may'.tr(),
-    'month.june'.tr(),
-    'month.july'.tr(),
-    'month.august'.tr(),
-    'month.september'.tr(),
-    'month.october'.tr(),
-    'month.november'.tr(),
-    'month.december'.tr()
-  ];
-  /// 选中的日期类型
-  int selectedTabIndex = 0;
-  final List<String> tabs = ['date.week'.tr(), 'date.month'.tr(), 'date.year'.tr()];
-
   /// 选中日期键
   int selectedIndex = 0;
 
   /// 展示的日期格式
   String get selectedDateStr =>
-      formatDate(selectedDate, showLen: selectedTabIndex == 0 ? 2 : 1);
-  List<(String, String, int)> dateItems = [];
-  List<String> get dateStringItems =>
-      dateItems.map((e) => parseDateString(e.$3)).toList();
+      formatDate(selectedDate, gap: '.', showLen: widget.dateFilterMode == 1 ? 2 : 1);
 
-  
-  String parseDateString(int current) {
-    /// 解析日期字符串
-    switch (selectedTabIndex) {
-      case 0:
-        return '$current`${'date.week'.tr()}';
-      case 1:
-        return monthList[current];
-      case 2:
-        return current.toString();
-      default:
-        return '';
-    }
-    
-  }
-
-  /// 选择月份
+  /// 选择月份或年份
   Future<void> onSelectMonth() async {
-    final fields = selectedTabIndex == 1 ? ['year'] : ['year', 'month'];
+    final fields = widget.dateFilterMode == 2 ? ['year'] : ['year', 'month'];
     var respond = await showYearMonthPicker(
         context: context, value: selectedDate, fields: fields);
     if (respond != null) {
-      /// 选择年则把月份置于12月
-      final targetMonth = selectedTabIndex == 1 ? 13 : respond.month + 1;
-      final targetDate = DateTime(respond.year, targetMonth, 1)
-          .subtract(const Duration(days: 1));
       setState(() {
-        selectedDate =
-            targetDate.isAfter(DateTime.now()) ? DateTime.now() : targetDate;
-        // selectedIndex = dateItems.indexWhere((element) => element.$1 == respond.year.toString() && element.$2 == respond.month.toString());
+        selectedDate = respond;
       });
-      onSelectedDateType(selectedTabIndex);
+      if (widget.onDate != null) _calculateDateTupleBubble();
     }
   }
 
-  /// 选择日期类型
-  void onSelectedDateType(int type) {
-    switch (type) {
-      case 2:
+  /// 计算出日期元组冒泡
+  void _calculateDateTupleBubble() {
+    switch (widget.dateFilterMode) {
+      case 0:
         {
-          var list = getYearlyRanges(DateTime.now());
-          setState(() {
-            dateItems = list;
-            selectedTabIndex = type;
-            selectedIndex = list.length - 1;
-          });
-          break;
-        }
-      case 1:
-        {
-          var list = getMonthlyRanges(selectedDate);
-          setState(() {
-            dateItems = list;
-            selectedTabIndex = type;
-            selectedIndex = list.length - 1;
-          });
+          final weekIndex = selectedDate.weekday;
+
+          /// 获得一周的周一
+          final monday = selectedDate.subtract(Duration(days: weekIndex - 1));
+
+          /// 获得一周的周日
+          final sunday = selectedDate.add(Duration(days: 7 - weekIndex));
+          widget.onDate!((formatDate(monday), formatDate(sunday)));
           break;
         }
       default:
         {
-          var list = getWeeksOfMonth(selectedDate);
-          setState(() {
-            /// 先设置为0，不然可能超限
-            selectedIndex = 0;
-            dateItems = list;
-            selectedTabIndex = type;
-          });
-          // 延迟五百毫米厚执行
-          Future.delayed(const Duration(milliseconds: 200), () {
-            setState(() {
-              selectedIndex = list.length - 1;
-            });
-          });
+          final year = selectedDate.year;
+          final month = widget.dateFilterMode == 2 ? 1 : selectedDate.month;
+          final firstDay = DateTime(year, month, 1);
+          // 获取当月最后一天
+          final lastDay = (widget.dateFilterMode == 2
+                  ? DateTime(year + 1, month, 1)
+                  : DateTime(year, month + 1, 1))
+              .subtract(const Duration(days: 1));
+          widget.onDate!((formatDate(firstDay), formatDate(lastDay)));
         }
     }
   }
-  /// 选择日期
-  void onSelectDate(int index) {
-    var selected = dateItems[index];
-    widget.onDate?.call((selected.$1, selected.$2, selectedTabIndex));
+
+  /// 切换周
+  void _switchDateStep([int targe = 1]) {
+    switch (widget.dateFilterMode) {
+      case 0: {
+        setState(() {
+          selectedDate = selectedDate.add(Duration(days: targe * 7));
+        });
+      }
+      case 1: {
+        setState(() {
+          selectedDate = DateTime(selectedDate.year, selectedDate.month + targe, selectedDate.day);
+        });
+      }
+      case 2: {
+        setState(() {
+          selectedDate = DateTime(selectedDate.year + targe, selectedDate.month, selectedDate.day);
+        });
+      }
+    }
+    _calculateDateTupleBubble();
   }
 
   @override
   void initState() {
     super.initState();
-    onSelectedDateType(0);
+    _calculateDateTupleBubble();
+  }
+
+  @override
+  void didUpdateWidget(state) {
+    if (widget.dateFilterMode != state.dateFilterMode) {
+      _calculateDateTupleBubble();
+    }
+    super.didUpdateWidget(state);
+  }
+
+  /// 时间选择器
+  Widget leftDatePicker() {
+    if (widget.dateFilterMode != 0) {
+      final last = DateTime(selectedDate.year, selectedDate.month + 1, 1).subtract(const Duration(days: 1));
+      final isDisableNext = last.isAfter(DateTime.now());
+      return Row(children: [
+        IconButton(
+          onPressed: () {
+            _switchDateStep(-1);
+          },
+          icon: const Icon(Icons.arrow_left_rounded)),
+          TextButton(
+            onPressed: onSelectMonth,
+            child: Row(
+              children: [Text(selectedDateStr), const Icon(Icons.arrow_drop_down)],
+            )
+          ),
+          IconButton(
+            onPressed: isDisableNext ? null : () {
+              _switchDateStep();
+            },
+          icon: const Icon(Icons.arrow_right_rounded)),
+      ]);
+    }
+    final weekIndex = selectedDate.weekday;
+
+    /// 获得一周的周一
+    final monday = selectedDate.subtract(Duration(days: weekIndex - 1));
+
+    /// 获得一周的周日
+    final sunday = selectedDate.add(Duration(days: 7 - weekIndex));
+
+    /// 是否禁止下一周
+    final isDisableNextWeek = sunday.isAfter(DateTime.now());
+    return Row(
+      children: [
+      IconButton(
+          onPressed: () {
+            _switchDateStep(-1);
+          },
+          icon: const Icon(Icons.arrow_left_rounded)),
+      Text([formatDateLeft(monday, gap: '.'), formatDateLeft(sunday, gap: '.')]
+          .join('-')),
+      IconButton(
+          onPressed: isDisableNextWeek ? null : () {
+            _switchDateStep();
+          },
+          icon: const Icon(Icons.arrow_right_rounded))
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      var safeTopAreaHeight = ref.watch(safeTopAreaHeightProvider);
-      return SizedBox(
-          height: 100,
-          child: Stack(children: [
-            Transform.translate(
-              offset: Offset(0, -(safeTopAreaHeight)),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Theme.of(context).primaryColor, // 起始颜色
-                      // 默认背景色
-                      Theme.of(context).colorScheme.surface,
-                    ],
-                  ),
-                ),
-                child: const SizedBox(height: 300, width: double.infinity),
-              ),
-            ),
-            Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ButtonGroupWidget(
-                      items: tabs,
-                      onTap: onSelectedDateType,
-                    ),
-                  ),
-                  NavScrollWidget(
-                      items: dateStringItems,
-                      selected: dateStringItems[selectedIndex],
-                      onTap: onSelectDate,
-                      leftWidget: selectedTabIndex != 2
-                          ? TextButton(
-                              onPressed: onSelectMonth,
-                              child: Row(
-                                children: [
-                                  Text(selectedDateStr),
-                                  const Icon(Icons.arrow_drop_down)
-                                ],
-                              ),
-                            )
-                          : null),
-                  const SizedBox()
-                ]),
-          ]));
-    });
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(height: 40, child: leftDatePicker()),
+          Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: SizedBox(
+                  width: 160,
+                  child: ButtonGroupWidget(
+                      height: 28,
+                      items: [CategoryType.expense.tr, CategoryType.income.tr],
+                      onTap: (i) {
+                        if (widget.onCategoryType != null) {
+                          widget.onCategoryType!(CategoryType.fromInt(i + 1));
+                        }
+                      })))
+        ]);
   }
 }
 
@@ -332,7 +335,6 @@ class _NavScrollWidgetState extends State<NavScrollWidget> {
   @override
   void initState() {
     super.initState();
-    // initSelected();
   }
 
   /// 内容更新进行监听
@@ -399,6 +401,7 @@ class _NavScrollWidgetState extends State<NavScrollWidget> {
                                   width: 2))),
                       child: Text(widget.items[index],
                           style: TextStyle(
+                              fontSize: (widget.height / 2 - 4),
                               color: _selectedIndex == index
                                   ? primaryColor
                                   : Colors.grey[600])),
@@ -477,11 +480,14 @@ class _ButtonGroupWidgetState extends State<ButtonGroupWidget> {
       final leftBorder =
           Border(left: BorderSide(color: Theme.of(context).primaryColor));
 
+      final fontSize = (widget.height / 2) - 4;
+
       /// 白色文本样式
-      final whiteText = TextStyle(color: Colors.grey[300]);
+      final whiteText = TextStyle(color: Colors.grey[300], fontSize: fontSize);
 
       /// 默认颜色
-      final defaultText = TextStyle(color: Theme.of(context).primaryColor);
+      final defaultText =
+          TextStyle(color: Theme.of(context).primaryColor, fontSize: fontSize);
       return ClipRRect(
           borderRadius: BorderRadius.circular(widget.borderRadius),
           child: Container(
@@ -564,10 +570,9 @@ class LineChartWidget extends StatelessWidget {
     return LineChart(
       LineChartData(
         lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (spot) => Theme.of(context).primaryColorLight,
-          )
-        ),
+            touchTooltipData: LineTouchTooltipData(
+          getTooltipColor: (spot) => Theme.of(context).primaryColorLight,
+        )),
         titlesData: titlesData,
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(
@@ -640,30 +645,37 @@ class LineChartWidget extends StatelessWidget {
 
 /// 顶部选择
 class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final CategoryType selectedCategoryType;
-  final void Function(CategoryType value) onSelected;
+  /// 选择时间筛选模式
+  final void Function(int value) onSelected;
 
-  const ExpenditureAppBar(
-      {super.key,
-      required this.selectedCategoryType,
-      required this.onSelected});
+  const ExpenditureAppBar({super.key, required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
+    final List<String> tabs = [
+      'date.week'.tr(),
+      'date.month'.tr(),
+      'date.year'.tr()
+    ];
     return AppBar(
-      title: PopupMenuButton<CategoryType>(
-        position: PopupMenuPosition.under,
-        itemBuilder: (context) => [CategoryType.income, CategoryType.expense]
-            .map((value) => PopupMenuItem(value: value, child: Text(value.tr)))
-            .toList(),
-        onSelected: onSelected,
-        child: SizedBox(child: Row(
-          mainAxisAlignment: MainAxisAlignment.center, 
-          children: [
-            Text(selectedCategoryType.tr),
-            const Icon(Icons.arrow_drop_down)
-          ]),)
-      ),
+      title: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 300),
+          child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: NavScrollWidget(items: tabs, onTap: onSelected))),
+      actions: [
+        PopupMenuButton<String>(
+          position: PopupMenuPosition.under,
+          itemBuilder: (context) => ['help']
+              .map((value) =>
+                  PopupMenuItem(value: value, child: Text(value).tr()))
+              .toList(),
+          onSelected: (_) {},
+          child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(Icons.more_horiz)),
+        ),
+      ],
       backgroundColor: Colors.transparent,
     );
   }

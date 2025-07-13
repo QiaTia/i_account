@@ -1,7 +1,32 @@
+import 'package:easy_localization/easy_localization.dart';
+
+/// 最早支持年份
+const _lastYear = 2020;
+
+ //// 月份列表
+final monthList = [
+  'month.january'.tr(),
+  'month.february'.tr(),
+  'month.march'.tr(),
+  'month.april'.tr(),
+  'month.may'.tr(),
+  'month.june'.tr(),
+  'month.july'.tr(),
+  'month.august'.tr(),
+  'month.september'.tr(),
+  'month.october'.tr(),
+  'month.november'.tr(),
+  'month.december'.tr()
+];
+
+
 // 手动格式化日期为"YYYY-MM-DD"字符串（避免依赖intl包）[5](@ref)
-String formatDate(DateTime date, { int showLen = 3 }) {
-  return [date.year.toString(), date.month.toString().padLeft(2, '0'), date.day.toString().padLeft(2, '0')].sublist(0, showLen).join('-');
+String formatDate(DateTime date, { int showLen = 3, gap = '-' }) {
+  return [date.year.toString(), date.month.toString().padLeft(2, '0'), date.day.toString().padLeft(2, '0')].sublist(0, showLen).join(gap);
   // return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+}
+String formatDateLeft(DateTime date, { int showLen = 1, gap = '-' }) {
+  return [date.year.toString(), date.month.toString().padLeft(2, '0'), date.day.toString().padLeft(2, '0')].sublist(2 - showLen, 3).join(gap);
 }
 
 /// 获取某个月份的周列表，仅包含属于该月的周
@@ -64,10 +89,9 @@ List<(String, String, int)> getMonthlyRanges(DateTime inputDate) {
 /// 获取某个年份的所有年份的范围，包括当年
 List<(String, String, int)> getYearlyRanges(DateTime inputDate) {
   final year = inputDate.year;
-  const lastYear = 2020;
   final List<(String, String, int)> ranges = [];
   // 遍历从1月到目标月份的所有月份
-  for (int i = lastYear; i <= year; i++) {
+  for (int i = _lastYear; i <= year; i++) {
     // 计算当月第一天
     final firstDay = DateTime(i, 1, 1);
     // 计算当月最后一天（下个月第一天减1天）
