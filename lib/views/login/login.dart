@@ -130,19 +130,19 @@ class SMSLoginForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TextField(
+        const TextField(
           decoration: InputDecoration(labelText: 'Username'),
         ),
-        TextField(
+        const TextField(
           decoration: InputDecoration(labelText: 'Code'),
           obscureText: true,
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () {
             // Handle password login
           },
-          child: Text('Login'),
+          child: const Text('Login'),
         ),
       ],
     );

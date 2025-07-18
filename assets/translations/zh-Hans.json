@@ -87,5 +87,12 @@
   "account.remark.hint": "请输入备注！",
   "account.origin.channel": "导入原始信息",
   "chart.total": "总",
-  "chart.average": "平均值"
+  "chart.average": "平均值",
+  "mine.import.choose_file": "选择文件",
+  "mine.import.empty_hint": "点击下方按钮选择需要导入的账单文件吧？",
+  "mine.import.empty_success_hint": "导入成功！",
+  "mine.import.empty_fail_hint": "导入失败！",
+  "mine.import.replace_category": "更换分类",
+  "mine.import.confirm": "确认导入",
+  "mine.import.delete_record": "已删除记录"
 }

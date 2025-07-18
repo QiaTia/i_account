@@ -236,27 +236,27 @@ class _RecordListState extends ConsumerState<RecordList> {
       child: list.isEmpty ? 
         hasNextPage ? const Center(child: CircularProgressIndicator()) : const EmptyContent() : 
         ListView.builder(
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          var it = list[index];
-          return ListTile(
-            onTap: () { goDetail(it, context); },
-            leading: CircleItemIcon(name: it.icon),
-            title: Text(it.amount.toStringAsFixed(2)),
-            subtitle: Text(it.remark,
-              overflow: TextOverflow.ellipsis,
-              style: appContent.textTheme.bodySmall!
-                .copyWith(color: appContent.dividerColor),
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(DateFormat('yyyy/MM/dd').format(it.billDate)),
-                Text(it.name)
-            ]),
-          );
-        },
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            var it = list[index];
+            return ListTile(
+              onTap: () { goDetail(it, context); },
+              leading: CircleItemIcon(name: it.icon),
+              title: Text(it.amount.toStringAsFixed(2)),
+              subtitle: Text(it.remark,
+                overflow: TextOverflow.ellipsis,
+                style: appContent.textTheme.bodySmall!
+                  .copyWith(color: appContent.dividerColor),
+              ),
+              trailing: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(DateFormat('yyyy/MM/dd').format(it.billDate)),
+                  Text(it.name)
+              ]),
+            );
+          },
       ),
     );
   }

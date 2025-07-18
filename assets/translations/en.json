@@ -87,5 +87,12 @@
   "account.remark.hint": "Please input Remark!",
   "account.origin.channel": "Import original information",
   "chart.total": "Total",
-  "chart.average": "Average"
+  "chart.average": "Average",
+  "mine.import.choose_file": "Choose File",
+  "mine.import.empty_hint": "Click the button below to select the bill file to import!",
+  "mine.import.empty_success_hint": "Import successful!",
+  "mine.import.empty_fail_hint": "Import failed!",
+  "mine.import.replace_category": "Replace Category",
+  "mine.import.confirm": "Confirm Import",
+  "mine.import.delete_record": "Deleted Record"
 }

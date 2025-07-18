@@ -91,12 +91,6 @@ class MyHomePage extends ConsumerWidget {
                   NavDataContainer(),
                   NavContainer(),
                   HomeList(),
-                  // const AnimatedText(),
-                  // FilledButton(
-                  //   onPressed: () {
-                  //     ref.read(clickCountProvider.notifier).increment();
-                  //   },
-                  //   child: const Text("mine.about").tr()),
                 ],
               ),
             )
@@ -104,7 +98,6 @@ class MyHomePage extends ConsumerWidget {
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               showRecordPopup(context);
-              // ref.read(clickCountProvider.notifier).increment();
             },
             tooltip: 'Add',
             child: const Icon(Icons.add),
@@ -122,7 +115,6 @@ class HomeList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectDate = ref.watch(selectDateProvider);
-    // final refHome = ref.watch(refreshHomeProvider);
     return Expanded(child: RecordList(selectDate: selectDate));
   }
 }

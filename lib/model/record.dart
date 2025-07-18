@@ -64,6 +64,20 @@ class RecordItem {
       'origin_info': originInfo
     };
   }
+  RecordItem copyWith({int? categoryId, String? remark, String? icon, String? originInfo, int? payPlatformId, DateTime? billDate, CategoryType? categoryType, double? amount, String? name}) {
+    return RecordItem(
+      id: id,
+      amount: amount ?? this.amount,
+      name: name ?? this.name,
+      categoryId: categoryId ?? this.categoryId,
+      categoryType: categoryType ?? this.categoryType,
+      billDate: billDate ?? this.billDate,
+      remark: remark ?? this.remark,
+      icon: icon ?? this.icon,
+      payPlatformId: payPlatformId ?? this.payPlatformId,
+      originInfo: originInfo ?? this.originInfo
+    );
+  }
   static RecordItem fromJson(Map<String, dynamic> info) {
     return RecordItem(
       id: info['id'],

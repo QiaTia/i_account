@@ -39,8 +39,8 @@
   "mine.theme_appearance_dark": "ダーク",
   "mine.data_import": "データインポート",
   "mine.data_import_hint": "ローカルファイルから請求データをインポート",
-  "mine.data_import_alipay": "Import Alipay Bill Data",
-  "mine.data_import_wechat": "Import Wechat Bill Data",
+  "mine.data_import_alipay": "アリペイ請求データをインポート",
+  "mine.data_import_wechat": "ウェチャット請求データをインポート",
   "mine.follow": "システムに従う",
   "mine.language_confirm_hint": "設定が完了しました。アプリが再起動します。",
   "date.week": "週",
@@ -87,5 +87,12 @@
   "account.remark.hint": "備考を入力してください！",
   "account.origin.channel": "インポート元情報",
   "chart.total": "合計",
-  "chart.average": "平均"
+  "chart.average": "平均",
+  "mine.import.choose_file": "ファイルを選択",
+  "mine.import.empty_hint": "下のボタンを押して請求データをインポートしてください！",
+  "mine.import.empty_success_hint": "インポート成功！",
+  "mine.import.empty_fail_hint": "インポート失敗！",
+  "mine.import.replace_category": "カテゴリを変更",
+  "mine.import.confirm": "インポート確認",
+  "mine.import.delete_record": "削除したレコード"
 }

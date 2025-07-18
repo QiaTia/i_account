@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -45,7 +46,9 @@ Future<T?> showRecordPopup<T>(BuildContext context) {
 }
 
 class CustomPopup extends StatelessWidget {
-  const CustomPopup({super.key});
+  final void Function(CategoryItemProvider)? onSelected;
+  const CustomPopup({super.key, this.onSelected });
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = min(MediaQuery.of(context).size.height / 2, 400);
@@ -57,11 +60,11 @@ class CustomPopup extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Expanded(
+              Expanded(
                 child: TabBarView(
                   children: [
-                    CategoryGridView(type: CategoryType.expense),
-                    CategoryGridView(type: CategoryType.income),
+                    CategoryGridView(type: CategoryType.expense, onSelected: onSelected),
+                    CategoryGridView(type: CategoryType.income, onSelected: onSelected),
                   ],
                 ),
               ),
@@ -79,7 +82,8 @@ class CustomPopup extends StatelessWidget {
 
 class CategoryGridView extends StatefulWidget {
   final CategoryType type;
-  const CategoryGridView({super.key, this.type = CategoryType.expense});
+  final void Function(CategoryItemProvider)? onSelected;
+  const CategoryGridView({super.key, this.type = CategoryType.expense, this.onSelected });
   @override
   createState() => _CategoryGridViewState();
 }
@@ -104,12 +108,17 @@ class _CategoryGridViewState extends State<CategoryGridView> {
 
   /// 点击项目
   void onItemTap(CategoryItemProvider item) {
+    /// 如果存在回调，则直接调用回调
+    if (widget.onSelected != null) {
+      widget.onSelected!(item);
+      return;
+    }
     showRecordDialog(
-        context: context,
-        item: item,
-        onDone: () {
-          Navigator.pop(context);
-        });
+      context: context,
+      item: item,
+      onDone: () {
+        Navigator.pop(context);
+      });
   }
 
   @override
@@ -359,4 +368,19 @@ Future showRecordDialog(
       );
     },
   );
+}
+
+/// 切换分类弹窗
+Future<CategoryItemProvider?> showChangeCategoryDialog({required BuildContext context, CategoryItemProvider? item}) {
+  final completer = Completer<CategoryItemProvider?>();
+  showModalBottomDetail<CategoryItemProvider>(
+    context: context,
+    child: CustomPopup(
+      onSelected: (item) {
+        completer.complete(item);
+        Navigator.pop(context);
+      },
+    ),
+  );
+  return completer.future;
 }

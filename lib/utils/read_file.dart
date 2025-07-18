@@ -121,6 +121,26 @@ Future<bool> onFileImportRecord() async {
   throw 'empty';
 }
 
+/// 从本地文件解析记录
+Future<List<RecordItem>> importLocalFile2Parse() async {
+   FilePickerResult? result = await FilePicker.platform.pickFiles(
+    allowMultiple: false,
+    type: FileType.custom,
+    allowedExtensions: ['csv'],
+  ).catchError((err) {
+    print('err:$err');
+    throw err;
+  });
+  if (result != null) {
+    var str = await detectFileEncoding(result.files.single.path!).catchError((err) {
+      print('err:$err');
+      throw err;
+    });
+    return _paseString(str);
+  }
+  throw '';
+}
+
 // Future<String> readGB2312File(String filePath) async {
 //   // 读取文件原始字节
 //   final bytes = await File(filePath).readAsBytes();
