@@ -248,10 +248,9 @@ class DBManager {
   }
   
   /// 图表页面按照条件查询记录
-  Future<(List<CategoryStatistics>, Map<String, double>, double)> selectRecordByCondition(String startDate, String endDate, [CategoryType type = CategoryType.expense, int group = 0]) async {
-    //  ...
-    String data = "SELECT `category_id`, `id`, `bill_date`, `amount` FROM `records` WHERE category_type = ? AND bill_date >= ? AND bill_date <= ? AND `is_deleted` = 0 ORDER BY `bill_date` ASC";
-    List<Object> query = [type.state, startDate, endDate];
+  Future<(List<CategoryStatistics>, Map<String, double>, double)> selectRecordByCondition(DateTime startDate, DateTime endDate, [CategoryType type = CategoryType.expense, int group = 0]) async {
+    String data = "SELECT `category_id`, `id`, `bill_date`, `amount` FROM `records` WHERE category_type = ? AND bill_date >= ? AND bill_date < ? AND `is_deleted` = 0 ORDER BY `bill_date` ASC";
+    List<Object> query = [type.state, formatDate(startDate), formatDate(endDate.add(const Duration(days: 1)))];
     var result = await db.rawQuery(data, query).catchError((err) {
       print('err:$err');
       throw err;
@@ -263,7 +262,7 @@ class DBManager {
     ///  总计
     double totalAmount = 0.0;
     // 初始化日期数据
-    var dateStrList = fillRangeData(DateTime.parse(startDate), DateTime.parse(endDate));
+    var dateStrList = fillRangeData(startDate, endDate);
     for (var it in dateStrList) {
       groupedData[it] = 0.0; // 初始化日期数据
     }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:i_account/common/Widget/base.dart';
@@ -26,7 +28,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
   int dateFilterMode = 0;
 
   /// 选中的日期范围
-  (String, String) selectedDateRange = ('', '');
+  (DateTime, DateTime) selectedDateRange = (DateTime.now(), DateTime.now());
 
   /// 总金额
   double totalAmount = 0.0;
@@ -53,7 +55,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
   }
 
   /// 初始化数据
-  void initData((String, String) selected) {
+  void initData((DateTime, DateTime) selected) {
     selectedDateRange = selected;
     $dbManager
         .selectRecordByCondition(
@@ -133,7 +135,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 /// 顶部日期选择栏
 class HeaderWidget extends StatefulWidget {
   final int dateFilterMode;
-  final void Function((String, String) selected)? onDate;
+  final void Function((DateTime, DateTime) selected)? onDate;
   final void Function(CategoryType val)? onCategoryType;
   const HeaderWidget(
       {super.key,
@@ -179,7 +181,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
 
           /// 获得一周的周日
           final sunday = selectedDate.add(Duration(days: 7 - weekIndex));
-          widget.onDate!((formatDate(monday), formatDate(sunday)));
+          widget.onDate!((monday, sunday));
           break;
         }
       default:
@@ -192,7 +194,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                   ? DateTime(year + 1, month, 1)
                   : DateTime(year, month + 1, 1))
               .subtract(const Duration(days: 1));
-          widget.onDate!((formatDate(firstDay), formatDate(lastDay)));
+          widget.onDate!((firstDay, lastDay));
         }
     }
   }
@@ -235,9 +237,11 @@ class _HeaderWidgetState extends State<HeaderWidget> {
 
   /// 时间选择器
   Widget leftDatePicker() {
+    /// 获取当前时间
+    final now = DateTime.now();
     if (widget.dateFilterMode != 0) {
-      final last = DateTime(selectedDate.year, selectedDate.month + 1, 1).subtract(const Duration(days: 1));
-      final isDisableNext = last.isAfter(DateTime.now());
+      final last = DateTime(selectedDate.year, selectedDate.month + 1, 1).subtract(const Duration(seconds: 1));
+      final isDisableNext = last.isAfter(now);
       return Row(children: [
         IconButton(
           onPressed: () {
@@ -266,7 +270,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
     final sunday = selectedDate.add(Duration(days: 7 - weekIndex));
 
     /// 是否禁止下一周
-    final isDisableNextWeek = sunday.isAfter(DateTime.now());
+    final isDisableNextWeek = sunday.isAfter(DateTime(now.year, now.month, now.day));
     return Row(
       children: [
       IconButton(
@@ -331,7 +335,9 @@ class NavScrollWidget extends StatefulWidget {
 
 class _NavScrollWidgetState extends State<NavScrollWidget> {
   int _selectedIndex = 0;
+
   final ScrollController _controller = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -375,9 +381,15 @@ class _NavScrollWidgetState extends State<NavScrollWidget> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
-    return Container(
+    final fontSize = (widget.height / 2 - 4);
+    return LayoutBuilder(builder: (_, constraints) {
+      double width = 50;
+      if (widget.items.length < 4) {
+        width = max(constraints.maxWidth / widget.items.length, width);
+      }
+      print('Parent width: ${constraints.maxWidth}, item width: $width'); 
+      return SizedBox(
         height: widget.height,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
         child: Row(children: [
           widget.leftWidget ?? const SizedBox(),
           Expanded(
@@ -391,7 +403,7 @@ class _NavScrollWidgetState extends State<NavScrollWidget> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       alignment: Alignment.center,
-                      // width: 120,
+                      constraints: BoxConstraints(minWidth: width),
                       decoration: BoxDecoration(
                           border: Border(
                               bottom: BorderSide(
@@ -401,7 +413,7 @@ class _NavScrollWidgetState extends State<NavScrollWidget> {
                                   width: 2))),
                       child: Text(widget.items[index],
                           style: TextStyle(
-                              fontSize: (widget.height / 2 - 4),
+                              fontSize: fontSize,
                               color: _selectedIndex == index
                                   ? primaryColor
                                   : Colors.grey[600])),
@@ -410,6 +422,7 @@ class _NavScrollWidgetState extends State<NavScrollWidget> {
                 }),
           )
         ]));
+    });
   }
 }
 
@@ -660,9 +673,11 @@ class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 300),
-          child: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: NavScrollWidget(items: tabs, onTap: onSelected))),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300, minWidth: 80), 
+              child: NavScrollWidget(items: tabs, onTap: onSelected))
+            )),
       actions: [
         PopupMenuButton<String>(
           position: PopupMenuPosition.under,
@@ -670,7 +685,9 @@ class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
               .map((value) =>
                   PopupMenuItem(value: value, child: Text(value).tr()))
               .toList(),
-          onSelected: (_) {},
+          onSelected: (_) {
+            print(_);
+          },
           child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
               child: Icon(Icons.more_horiz)),
