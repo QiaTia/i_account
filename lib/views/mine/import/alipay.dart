@@ -26,10 +26,10 @@ class _ImportAlipayState extends ConsumerState<ImportAlipay> {
   bool showLoading = false;
 
   /// 点击导入
-  void onFileImport() {
-    setState(() {
-      showLoading = true;
-    });
+  void onFileImport() async {
+    setState(() { showLoading = true; });
+    // var typeList = await $db.queryCategoryList();
+
     importLocalFile2Parse().then((list) {
       if (list.isNotEmpty) {
         setState(() {
@@ -66,6 +66,7 @@ class _ImportAlipayState extends ConsumerState<ImportAlipay> {
 
   /// 更换分类
   void onReplaceCategory(int index) async {
+    /// 显示选择分类对话框
     final item = await showChangeCategoryDialog(context: context);
     if (item != null) {
       final it = list[index];

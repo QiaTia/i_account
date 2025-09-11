@@ -8,7 +8,7 @@
 PRODUCT_NAME = I`Account
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = cn.tia.myApp
+PRODUCT_BUNDLE_IDENTIFIER = cn.tia.i_account
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2023 cn.tia. All rights reserved.

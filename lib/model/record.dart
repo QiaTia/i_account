@@ -64,6 +64,7 @@ class RecordItem {
       'origin_info': originInfo
     };
   }
+  
   RecordItem copyWith({int? categoryId, String? remark, String? icon, String? originInfo, int? payPlatformId, DateTime? billDate, CategoryType? categoryType, double? amount, String? name}) {
     return RecordItem(
       id: id,

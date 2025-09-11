@@ -17,7 +17,8 @@ class ExpenseDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
-  final DBManager db = DBManager();
+  final DBManager $db = DBManager();
+
   RecordDetail? expenseData;
   /// 是否有修改, 用于判断是否需要刷新列表
   bool isChange = false;
@@ -34,7 +35,7 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
 
   /// 从数据库获取账单详情数据
   void getExpenseDetail() {
-    db.selectRecordById(widget.expenseId).then((record) {
+    $db.selectRecordById(widget.expenseId).then((record) {
       if (record == null) {
         _onBackPressed();
       } else {
@@ -62,7 +63,7 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
                 ),
                 TextButton(
                   onPressed: () {
-                    db.deleteRecord(expenseData?.id ?? 0).then((_) {
+                    $db.deleteRecord(expenseData?.id ?? 0).then((_) {
                       print('delete: $_');
                       isChange = true;
                       _onBackPressed();
@@ -84,23 +85,13 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
   /// 编辑弹窗
   void onEdit() {
     if (expenseData != null) {
-      RecordDetail info = expenseData!;
       showRecordDialog(
         context: context,
         onDone: () {
           isChange = true;
           getExpenseDetail();
         },
-        record: RecordItem(
-          icon: info.icon, 
-          id: info.id, 
-          amount: info.amount, 
-          name: info.name, 
-          categoryId: info.categoryId, 
-          categoryType: info.categoryType, 
-          billDate: info.billDate, 
-          remark: info.remark,
-        ));
+        record: expenseData);
     }
   }
 
@@ -109,6 +100,35 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
     super.initState();
     getExpenseDetail();
   }
+
+  /// 更换分类
+  void onReplaceCategory() async {
+    /// 显示选择分类对话框
+    final item = await showChangeCategoryDialog(context: context);
+    if (item != null) {
+      await $db.updateRecord(expenseData!.copyWith(
+        categoryId: item.id,
+        categoryType: item.type,
+        icon: item.icon,
+        name: item.name,
+      ));
+      isChange = true;
+      getExpenseDetail();
+    }
+    // if (item != null) {
+    //   final it = list[index];
+    //   final newItem = it.copyWith(
+    //     categoryId: item.id!,
+    //     categoryType: item.type,
+    //     name: item.name,
+    //     icon: item.icon,
+    //   );
+    //   setState(() {
+    //     list[index] = newItem;
+    //   });
+    // }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +187,8 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
 
   Widget _buildBodyContent(RecordDetail record) {
     return Column(children: [
-      SizedBox(
+      InkWell(onTap: onReplaceCategory, child:
+        SizedBox(
           height: 120,
           child: Column(children: [
             Icon(getItemIcon(record.icon),
@@ -176,7 +197,7 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
             // Icon(Icons.wallet_giftcard_rounded, size: 60, color: Theme.of(context).colorScheme.onPrimary),
             const SizedBox(height: 10),
             Text(record.name, style: Theme.of(context).textTheme.bodyLarge)
-          ])),
+          ]))),
       Expanded(
           child: Container(
         color: Theme.of(context).cardColor,

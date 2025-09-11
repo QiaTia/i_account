@@ -1,21 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-@riverpod
-class ClickCount extends Notifier<int> {
-  // 重写此方法返回Notifier的初始状态
-  @override
-  int build() => 0;
-  /// 自增
-  void increment() {
-    state++;
-  }
-  /// 重置
-  void reset() {
-    state = 0;
-  }
-}
-
-final clickCountProvider = NotifierProvider<ClickCount, int>(() => ClickCount());
 
 @riverpod
 /// 选择日期
@@ -30,6 +14,9 @@ class SelectDate extends Notifier<DateTime> {
 }
 
 final selectDateProvider = NotifierProvider<SelectDate, DateTime>(() => SelectDate());
+
+// @riverpod
+// DateTime selectDateProvider(Ref ref) => SelectDate();
 
 @riverpod
 /// 顶部状态栏高度

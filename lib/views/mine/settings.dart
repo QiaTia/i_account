@@ -23,7 +23,7 @@ class SettingsPage extends ConsumerWidget {
         title: 'appTitle'.tr()),
       _SettingItem(
         iconData: Icons.file_copy_outlined,
-        content: 'mine.data_import_hint'.tr(),
+        label: 'mine.data_import_hint'.tr(),
         action: () {
           importSheet(context);
         },
@@ -119,6 +119,7 @@ class SettingsPage extends ConsumerWidget {
                     name: item.title,
                     showArrow: item.action != null,
                     // icon: item.icon,
+                    label: item.label,
                     iconData: item.iconData,
                     right: item.content));
           },
@@ -140,20 +141,24 @@ class _SettingItem {
   /// 内容
   final String? content;
 
+  /// 下方描述内容
+  final String? label;
+
   /// 跳转页面
   final Function? action;
 
   /// IconWidget
   final IconData? iconData;
 
-  _SettingItem(
-    {
+  _SettingItem({
     // this.icon = '',
     required this.title,
     this.path,
     this.content,
+    this.label,
     this.iconData,
-    this.action});
+    this.action
+  });
 }
 
 

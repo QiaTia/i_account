@@ -57,6 +57,7 @@ List<RecordItem> _paseString(String str) {
   // }
   List<RecordItem> newList = [];
   list.reversed.toList().sublist(1).forEach((element) {
+    /// #todo 根据现在分类进行解析
     newList.add(parseRecordItem(element));
   });
   print(tableKey);

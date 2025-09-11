@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:i_account/store/storage.dart';
 import 'package:i_account/themes/multiple_theme_mode.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+// part 'application.g.dart';
 
 /// 应用程序支持的语言列表
 const List<Locale> supportedLocales = [
@@ -11,11 +13,22 @@ const List<Locale> supportedLocales = [
 ];
 
 
-final currentApplicationProvider = StateNotifierProvider<ApplicationController, Application>(
-    (ref) => ApplicationController(Application()));
+// @riverpod
+// Application currentApplicationProvider(Ref ref) => Application();
 
-class ApplicationController extends StateNotifier<Application> {
-  ApplicationController(super.state);
+final currentApplicationProvider = NotifierProvider<ApplicationController, Application>(() =>
+  ApplicationController(Application()));
+
+@riverpod
+class ApplicationController extends Notifier<Application> {
+
+  final Application app;
+
+  ApplicationController(this.app);
+
+  @override
+  Application build() => app;
+
   /// 重载应用程序
   void setApplication(Application application) {
     state = application;
@@ -45,6 +58,7 @@ class ApplicationController extends StateNotifier<Application> {
     };
   }
 }
+
 
 /// 应用程序状态管理类
 class Application {

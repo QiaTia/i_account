@@ -15,7 +15,7 @@ void main() async {
   final app = await loadApplication();
   runApp(ProviderScope(
     overrides: [
-      currentApplicationProvider.overrideWith((ref) => ApplicationController(app)),
+      currentApplicationProvider.overrideWith(() => ApplicationController(app)),
     ],
     child: EasyLocalization(
       supportedLocales: supportedLocales,

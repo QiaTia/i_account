@@ -15,19 +15,29 @@ const Empty = SizedBox(width: 0, height: 0);
 class MenuListItem {
   /// 菜单图标
   final String icon;
+
   /// 菜单名称
   final String name;
+
   /// 页面路径
   final String? path;
+
   /// 菜单权限
   final String access;
+
   /// 菜单分组
   final int group;
+
   /// 预处理方法
   final Future<String?> Function()? prefix;
-  MenuListItem({required this.icon, required this.name, this.path, required this.access, this.group = 1, this.prefix });
+  MenuListItem(
+      {required this.icon,
+      required this.name,
+      this.path,
+      required this.access,
+      this.group = 1,
+      this.prefix});
 }
-
 
 /// 头像展示, 会自动取当前用户信息
 // class Avatar extends StatefulWidget {
@@ -121,13 +131,13 @@ class DashboardItem extends StatelessWidget {
           item.prefix!().then((value) {
             print(value ?? item.name);
           });
-        } else { 
+        } else {
           print(item.path);
           // Get.toNamed(item.path!);
-        } 
-      }, 
-    ); 
-  } 
+        }
+      },
+    );
+  }
 }
 
 /// 标题内容容器
@@ -194,60 +204,89 @@ class ListItem extends StatelessWidget {
 
   /// 圆角
   final double? borderRadius;
+
   /// IconData
   final IconData? iconData;
 
-  const ListItem({
-    super.key,
-    required this.name,
-    this.icon = '',
-    this.iconData,
-    this.body,
-    this.right,
-    this.borderRadius = 0,
-    this.showDivider = false,
-    this.showArrow = false
-  });
+  /// 下方描述内容
+  final String? label;
+
+  const ListItem(
+      {super.key,
+      required this.name,
+      this.icon = '',
+      this.iconData,
+      this.body,
+      this.right,
+      this.label,
+      this.borderRadius = 0,
+      this.showDivider = false,
+      this.showArrow = false});
+
+  Widget _buildContent(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Row(children: [
+        // 注意：这里的 `icon` 应当是一个字符串
+        icon.isNotEmpty || iconData != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 11),
+                child: iconData != null
+                    ? Icon(iconData, size: 16)
+                    : Image.asset(icon, width: 16, height: 18))
+            : Empty,
+        Text(name, style: Theme.of(context).textTheme.bodyMedium),
+        Expanded(
+            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          right != null
+              ? Text(
+                  right!,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                )
+              : Empty,
+          showArrow
+              ? const Icon(
+                  Icons.chevron_right_outlined,
+                  color: Colors.grey,
+                  size: 17,
+                )
+              : Empty
+        ]))
+      ]),
+      body ?? Empty,
+      label != null
+          ? Padding(
+            padding: EdgeInsets.only(top: 2, right: 4), 
+            child: Text(label!,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.grey)))
+          : Empty,
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
+    /// 列
+    final List<Widget> columnList = [
+      Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 22),
+          child: _buildContent(context))
+    ];
+    // if (label != null) {
+    //   columnList.add(Padding(
+    //       padding: const EdgeInsets.only(right: 22, top: 0, bottom: 14),
+    //       child: Text(label!,
+    //           style: const TextStyle(
+    //               fontSize: 12,
+    //               color: Colors.grey,
+    //               fontWeight: FontWeight.w400))));
+    // }
+    if (showDivider) {
+      columnList.add(const Divider(height: 2, color: Colors.grey));
+    }
     return DecoratedBox(
         decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(borderRadius ?? 0)),
-        child: Column(children: [
-          Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 22),
-              child: Column(children: [
-                Row(children: [
-                  // 注意：这里的 `icon` 应当是一个字符串
-                  icon.isNotEmpty || iconData != null
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 11),
-                          child: iconData != null ? Icon(iconData, size: 16) : Image.asset(icon, width: 16, height: 18))
-                      : Empty,
-                  Text(name, style: Theme.of(context).textTheme.bodyMedium),
-                  Expanded(
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                        right != null
-                            ? Text(
-                                right!,
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.grey),
-                              )
-                            : Empty,
-                       showArrow ? const Icon(
-                          Icons.chevron_right_outlined,
-                          color: Colors.grey,
-                          size: 17,
-                        ) : Empty
-                      ]))
-                ]),
-                body ?? Empty,
-              ])),
-          showDivider ? const Divider(height: 2, color: Colors.grey) : Empty
-        ]));
+        child: Column(children: columnList));
   }
 }
 
@@ -303,13 +342,12 @@ class EmptyContent extends StatelessWidget {
   const EmptyContent({super.key, this.text = 'empty.data'});
   @override
   Widget build(BuildContext context) {
-    return Center(child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset('assets/icon/ic_empty.svg', width: 130),
-          const Padding(padding: EdgeInsets.only(top: 16)),
-          Text(text.tr(), style: const TextStyle(fontSize: 14, color: Colors.grey))
-        ]));
+    return Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      SvgPicture.asset('assets/icon/ic_empty.svg', width: 130),
+      const Padding(padding: EdgeInsets.only(top: 16)),
+      Text(text.tr(), style: const TextStyle(fontSize: 14, color: Colors.grey))
+    ]));
   }
 }
 
@@ -373,5 +411,3 @@ class SlideTransitionX extends AnimatedWidget {
     );
   }
 }
-
-

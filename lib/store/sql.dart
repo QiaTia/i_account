@@ -152,11 +152,12 @@ class DBManager {
     var billYear = data.billDate.year;
     var billMonth = data.billDate.month;
     String sqlData =
-        "UPDATE `records` SET amount=?, name=?, category_id=?,bill_year=?, bill_month=?, bill_date=?, remark=?, updated_at=? WHERE id=?";
+        "UPDATE `records` SET amount=?, name=?, category_id=?, category_type=?, bill_year=?, bill_month=?, bill_date=?, remark=?, updated_at=? WHERE id=?";
     int count = await db.rawUpdate(sqlData, [
       data.amount,
       data.name,
       data.categoryId,
+      data.categoryType.state,
       billYear,
       billMonth,
       data.billDate.toIso8601String(),
