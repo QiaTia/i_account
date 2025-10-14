@@ -113,34 +113,15 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              height: 48.0,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: Theme.of(context).primaryColor.withAlpha(43))),
               ),
-              child: Center(child: 
-                Text(widget.title,
-                  style: const TextStyle(
-                    fontSize: 18.0, fontWeight: FontWeight.bold))),
-              // child: Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     IconButton(
-              //       icon: const Icon(
-              //         Icons.close,
-              //         color: Colors.transparent,
-              //       ),
-              //       onPressed: () {},
-              //     ),
-              //     Text(widget.title,
-              //         style: const TextStyle(
-              //             fontSize: 18.0, fontWeight: FontWeight.bold)),
-              //     IconButton(
-              //       icon: const Icon(Icons.close),
-              //       onPressed: onCloseDialog,
-              //     ),
-              //   ],
-              // ),
+              child: Padding(padding: EdgeInsets.only(bottom: 12),
+                child: Center(child: 
+                  Text(widget.title,
+                    style: const TextStyle(
+                      fontSize: 18.0, fontWeight: FontWeight.bold)))),
             ),
             Expanded(
               child: Row(children: [
@@ -200,6 +181,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             ),
             SizedBox(
               width: double.infinity,
+              height: 36,
               child: ElevatedButton(
                 onPressed: onConfirm,
                 child: const Text('modal.confirm').tr(),

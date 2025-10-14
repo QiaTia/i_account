@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:i_account/common/show_modal/bottom_sheet.dart';
-import 'package:i_account/views/mine/import/alipay.dart';
+import '../import/alipay.dart';
+import '../import/wechat.dart';
 
 enum ImportMode {
   /// 支付宝
@@ -27,7 +28,7 @@ void importSheet(BuildContext context) async {
       }
     case ImportMode.wechat:
       {
-        nav.push(MaterialPageRoute(builder: (_) => const ImportAlipay()));
+        nav.push(MaterialPageRoute(builder: (_) => const ImportWechat()));
         break;
       }
     default: {

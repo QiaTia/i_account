@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:charset/charset.dart';
+import 'package:excel/excel.dart';
 import 'package:i_account/model/record.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:i_account/store/sql.dart';
@@ -141,6 +142,101 @@ Future<List<RecordItem>> importLocalFile2Parse() async {
   }
   throw '';
 }
+
+/// 从本地文件解析记录
+Future<List<RecordItem>> importLocalFileParseByWechat() async {
+   FilePickerResult? result = await FilePicker.platform.pickFiles(
+    allowMultiple: false,
+    type: FileType.custom,
+    allowedExtensions: ['xlsx'],
+  ).catchError((err) {
+    print('err:$err');
+    throw err;
+  });
+  if (result != null) {
+    List<RecordItem> resultList = [];
+    var bytes = File(result.files.single.path!).readAsBytesSync();
+    var excel = Excel.decodeBytes(bytes);
+    for (var table in excel.tables.keys) {
+      var sheet = excel.tables[table]!;
+      var maxColumns = sheet.maxColumns;
+      print('$table -> maxColumns: ${sheet.maxColumns} maxRows: ${sheet.maxRows}'); //sheet Name
+      for (var row in sheet.rows) {
+        var list = row
+          .where((element) => element != null)
+          .whereType<Data>()
+          .map((cell) => getCellStr(cell))
+          .toList();
+        if (list.length < maxColumns) continue;
+        // 跳过表头
+        if (!RegExp(r'\d').hasMatch(list[0] ?? '')) continue;
+
+        resultList.add(parseRecordItemByWechat(list));
+      }
+    }
+    return resultList;
+  }
+  throw '';
+}
+
+/// 获取单元格内容
+String? getCellStr(Data cell) {
+  final value = cell.value;
+  switch(value) {
+    case null:
+      return null;
+    case TextCellValue():
+      return '${value.value}';
+    case FormulaCellValue():
+      return value.formula;
+    case IntCellValue():
+      return '${value.value}';
+    case BoolCellValue():
+      return '${value.value ? 1 : 0}';
+    case DoubleCellValue():
+      return '${value.value}';
+    case DateCellValue():
+      return '${value.year} ${value.month} ${value.day} (${value.asDateTimeLocal()})';
+    case TimeCellValue():
+      return '${value.hour} ${value.minute} ... (${value.asDuration()})';
+    case DateTimeCellValue():
+      return '${value.year} ${value.month} ${value.day} ${value.hour} ... (${value.asDateTimeLocal()})';
+  }
+}
+
+/// 解析记录 by wechat
+RecordItem parseRecordItemByWechat(List<String?> item) {
+  // { 0: 交易时间, 1: 交易分类, 2: 交易对方, 3: 商品, 4:  收/支, 5: 金额, 6: 支付方式, 7: 当前状态, 8: 交易单号, 9: 商户单号, 10: 备注 }
+  CategoryType categoryType = item[4]?.trim() == '支出' ? CategoryType.expense : CategoryType.income;
+  var categoryId = 3;
+  // 转账红包  数码电器 充值缴费 投资理财 其他 交通出行
+  switch (item[1]?.trim()) {
+    case '商户消费':
+      categoryId = ['电费', '生活缴费'].contains(item[5]) ? 10 : 2;
+      break;
+    // case '转账红包':
+    //   categoryId = 1;
+    //   break;
+    case '转账':
+      categoryId = categoryType ==  CategoryType.expense ? 17 : 6;
+      break;
+  }
+  return RecordItem(
+    id: -1,
+    amount: double.parse(RegExp(r'-?\d*\.?\d+').firstMatch(item[5] ?? '0')?.group(0) ?? '0'),
+    name: item[1] ?? '',
+    categoryId: categoryId,
+    categoryType: categoryType,
+    billDate: DateTime.parse(item[0] ?? '2023-01-01'),
+    remark: [item[2], item[3], item[10]]
+      .where((el) => el != null && el != '/')
+      .join(' '),
+    icon: '',
+    payPlatformId: 2,
+    originInfo: item.join(',')
+  );
+}
+
 
 // Future<String> readGB2312File(String filePath) async {
 //   // 读取文件原始字节
