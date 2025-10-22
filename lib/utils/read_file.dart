@@ -6,6 +6,7 @@ import 'package:excel/excel.dart';
 import 'package:i_account/model/record.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:i_account/store/sql.dart';
+import 'package:flutter/foundation.dart' show compute;
 
 Future<String> detectFileEncoding(String filePath) async {
   try {
@@ -125,59 +126,60 @@ Future<bool> onFileImportRecord() async {
 
 /// 从本地文件解析记录
 Future<List<RecordItem>> importLocalFile2Parse() async {
-   FilePickerResult? result = await FilePicker.platform.pickFiles(
-    allowMultiple: false,
-    type: FileType.custom,
-    allowedExtensions: ['csv'],
-  ).catchError((err) {
+  var files = await onFilePicker(['csv']);
+  var str = await compute(detectFileEncoding, files.single.path!).catchError((err) {
     print('err:$err');
     throw err;
   });
-  if (result != null) {
-    var str = await detectFileEncoding(result.files.single.path!).catchError((err) {
-      print('err:$err');
-      throw err;
-    });
-    return _paseString(str);
-  }
-  throw '';
+  return _paseString(str);
 }
 
 /// 从本地文件解析记录
 Future<List<RecordItem>> importLocalFileParseByWechat() async {
-   FilePickerResult? result = await FilePicker.platform.pickFiles(
-    allowMultiple: false,
+  var files = await onFilePicker(['xlsx']);
+  return compute(onParseExcel, files.single.path!);
+}
+/// 拆分函数、把计算逻辑丢到 Isolate
+Future<List<RecordItem>> onParseExcel(String path) async{
+  List<RecordItem> resultList = [];
+  var bytes = File(path).readAsBytesSync();
+  var excel = Excel.decodeBytes(bytes);
+  for (var table in excel.tables.keys) {
+    var sheet = excel.tables[table]!;
+    var maxColumns = sheet.maxColumns;
+    print('$table -> maxColumns: ${sheet.maxColumns} maxRows: ${sheet.maxRows}'); //sheet Name
+    for (var row in sheet.rows) {
+      var list = row
+        .where((element) => element != null)
+        .whereType<Data>()
+        .map((cell) => getCellStr(cell))
+        .toList();
+      if (list.length < maxColumns) continue;
+      // 跳过表头
+      if (!RegExp(r'\d').hasMatch(list[0] ?? '')) continue;
+
+      resultList.add(parseRecordItemByWechat(list));
+    }
+  }
+  return resultList;
+}
+
+Future<List<PlatformFile>> onFilePicker(List<String>? allowedExtensions, [bool multiple = false]) async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    allowMultiple: multiple,
     type: FileType.custom,
-    allowedExtensions: ['xlsx'],
+    allowedExtensions: allowedExtensions,
   ).catchError((err) {
     print('err:$err');
     throw err;
   });
   if (result != null) {
-    List<RecordItem> resultList = [];
-    var bytes = File(result.files.single.path!).readAsBytesSync();
-    var excel = Excel.decodeBytes(bytes);
-    for (var table in excel.tables.keys) {
-      var sheet = excel.tables[table]!;
-      var maxColumns = sheet.maxColumns;
-      print('$table -> maxColumns: ${sheet.maxColumns} maxRows: ${sheet.maxRows}'); //sheet Name
-      for (var row in sheet.rows) {
-        var list = row
-          .where((element) => element != null)
-          .whereType<Data>()
-          .map((cell) => getCellStr(cell))
-          .toList();
-        if (list.length < maxColumns) continue;
-        // 跳过表头
-        if (!RegExp(r'\d').hasMatch(list[0] ?? '')) continue;
-
-        resultList.add(parseRecordItemByWechat(list));
-      }
-    }
-    return resultList;
+    return result.files;
+  } else {
+    return Future.error('no file');
   }
-  throw '';
 }
+
 
 /// 获取单元格内容
 String? getCellStr(Data cell) {
