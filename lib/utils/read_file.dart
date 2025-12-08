@@ -164,6 +164,7 @@ Future<List<RecordItem>> onParseExcel(String path) async{
   return resultList;
 }
 
+/// 打开文件选择器选择指定文件
 Future<List<PlatformFile>> onFilePicker(List<String>? allowedExtensions, [bool multiple = false]) async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     allowMultiple: multiple,

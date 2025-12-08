@@ -21,9 +21,9 @@ class AppThemeDefault implements AppMultipleTheme {
     return ThemeData(
       brightness: Brightness.light,
       // 字体
-      fontFamily: null,
+      fontFamily: "PingFang SC",
       // 文字
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: TextStyle(color: Colors.black87),
         displayMedium: TextStyle(color: Colors.black87),
         displaySmall: TextStyle(color: Colors.black87),
@@ -86,7 +86,7 @@ class AppThemeDefault implements AppMultipleTheme {
     return ThemeData(
       brightness: Brightness.dark,
       // 字体
-      fontFamily: null,
+      fontFamily: "PingFang SC",
       // 文字
       textTheme: const TextTheme(
         displayLarge: TextStyle(color: Color(0xFFEFEFEF)),

@@ -78,7 +78,7 @@ class PasswordLoginForm extends StatelessWidget {
 }
 
 
-class OptionTextField extends GetView {
+class OptionTextField extends StatelessWidget {
   const OptionTextField({ super.key, this.value, this.placeholder, this.maxLength, this.leftText, this.leftTextList, this.height, this.leftPlaceholder, this.onLeftValue, this.onValue });
   /// 当前输入的值
   final String? value;

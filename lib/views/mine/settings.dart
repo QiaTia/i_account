@@ -85,7 +85,7 @@ class SettingsPage extends ConsumerWidget {
     return Scaffold(
       // backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text('settings').tr(),
+        title: const Text('settings', style: TextStyle(fontWeight: FontWeight.w500)).tr(),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 48),
