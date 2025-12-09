@@ -197,10 +197,11 @@ class _RecordListState extends ConsumerState<RecordList> {
     getData();
   }
   /// 去详情页
-  void goDetail(RecordItem it, BuildContext context) {
-    Navigator.of(context)
-      .push<bool?>(MaterialPageRoute(
-          builder: (_) => ExpenseDetailScreen(expenseId: it.id)));
+  void goDetail(RecordItem it, BuildContext context) async {
+    final nav = Navigator.of(context);
+    final record = await db.selectRecordById(it.id);
+    nav.push<bool?>(MaterialPageRoute(
+          builder: (_) => ExpenseDetailScreen(info: record!)));
       // .then((isChange) {
       //   /// 如果有修改则刷新列表;
       //   if (isChange == true) {
@@ -240,7 +241,8 @@ class _RecordListState extends ConsumerState<RecordList> {
             var it = list[index];
             return ListTile(
               onTap: () { goDetail(it, context); },
-              leading: CircleItemIcon(name: it.icon),
+              leading: 
+              Hero(tag: '${it.id}_icon', child:  CircleItemIcon(name: it.icon)),
               title: Text(it.amount.toStringAsFixed(2)),
               subtitle: Text(it.remark,
                 overflow: TextOverflow.ellipsis,

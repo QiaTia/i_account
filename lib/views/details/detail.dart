@@ -10,8 +10,8 @@ import 'package:i_account/utils/modal.dart';
 import 'package:i_account/views/home/Widget/record.dart';
 
 class ExpenseDetailScreen extends ConsumerStatefulWidget {
-  const ExpenseDetailScreen({super.key, required this.expenseId});
-  final int expenseId;
+  const ExpenseDetailScreen({super.key, required this.info});
+  final RecordDetail info;
   @override
   ConsumerState<ExpenseDetailScreen> createState() => _ExpenseDetailScreen();
 }
@@ -35,15 +35,18 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
 
   /// 从数据库获取账单详情数据
   void getExpenseDetail() {
-    $db.selectRecordById(widget.expenseId).then((record) {
-      if (record == null) {
-        _onBackPressed();
-      } else {
-        setState(() {
-          expenseData = record;
-        });
-      }
+    setState(() {
+      expenseData = widget.info;
     });
+    // $db.selectRecordById(widget.expenseId).then((record) {
+    //   if (record == null) {
+    //     _onBackPressed();
+    //   } else {
+    //     setState(() {
+    //       expenseData = record;
+    //     });
+    //   }
+    // });
   }
 
   /// 弹窗确认删除
@@ -191,10 +194,10 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
         SizedBox(
           height: 120,
           child: Column(children: [
-            Icon(getItemIcon(record.icon),
-                color: Theme.of(context).colorScheme.primary,
-                size: 60),
-            // Icon(Icons.wallet_giftcard_rounded, size: 60, color: Theme.of(context).colorScheme.onPrimary),
+            Hero(
+              tag: '${record.id}_icon',
+              child:  CircleItemIcon(name: record.icon)
+            ),
             const SizedBox(height: 10),
             Text(record.name, style: Theme.of(context).textTheme.bodyLarge)
           ]))),
@@ -220,7 +223,12 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
     ]);
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, [String? tag]) {
+    final labelContent = Text(value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold));
     return InkWell(
       onTap: () {
         showModal(context, value, label.tr());
@@ -234,11 +242,7 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
           Text(label.tr(), style: TextStyle(fontSize: 16, color: Colors.grey[700]!)),
           const SizedBox(width: 16),
           Expanded(
-              child: Text(value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold))),
+              child: tag != null ? Hero(tag: tag, child: labelContent) : labelContent),
         ]),
       ));
   }
