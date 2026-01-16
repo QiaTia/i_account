@@ -35,18 +35,15 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
 
   /// 从数据库获取账单详情数据
   void getExpenseDetail() {
-    setState(() {
-      expenseData = widget.info;
+    $db.selectRecordById(widget.info.id).then((record) {
+      if (record == null) {
+        _onBackPressed();
+      } else {
+        setState(() {
+          expenseData = record;
+        });
+      }
     });
-    // $db.selectRecordById(widget.expenseId).then((record) {
-    //   if (record == null) {
-    //     _onBackPressed();
-    //   } else {
-    //     setState(() {
-    //       expenseData = record;
-    //     });
-    //   }
-    // });
   }
 
   /// 弹窗确认删除
@@ -101,7 +98,9 @@ class _ExpenseDetailScreen extends ConsumerState<ExpenseDetailScreen>  {
   @override
   void initState() {
     super.initState();
-    getExpenseDetail();
+    setState(() {
+      expenseData = widget.info;
+    });
   }
 
   /// 更换分类

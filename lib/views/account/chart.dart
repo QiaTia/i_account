@@ -27,6 +27,9 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
   /// 日期筛选模式 0 ｜ 1 ｜ 2
   int dateFilterMode = 0;
 
+  /// 是否按分类查询数据
+  bool isCategory = true;
+
   /// 选中的日期范围
   (DateTime, DateTime) selectedDateRange = (DateTime.now(), DateTime.now());
 
@@ -41,9 +44,12 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
 
   /// 选择类别
   void onSelected(CategoryType value) {
-    setState(() {
-      selectedCategoryType = value;
-    });
+    setState(() { selectedCategoryType = value; });
+    initData(selectedDateRange);
+  }
+  /// 
+  void onCategory() {
+    isCategory = !isCategory;
     initData(selectedDateRange);
   }
 
@@ -59,7 +65,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
     selectedDateRange = selected;
     $dbManager
         .selectRecordByCondition(
-            selected.$1, selected.$2, selectedCategoryType, dateFilterMode)
+            selected.$1, selected.$2, selectedCategoryType, dateFilterMode, isCategory)
         .then((result) {
       // 处理查询结果
       setState(() {
@@ -73,7 +79,7 @@ class _ExpenditureScreenState extends State<ExpenditureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: ExpenditureAppBar(onSelected: onSelectedFilterMode),
+        appBar: ExpenditureAppBar(onSelected: onSelectedFilterMode, onCategory: onCategory),
         body: Column(children: [
           HeaderWidget(
               dateFilterMode: dateFilterMode,
@@ -661,7 +667,10 @@ class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 选择时间筛选模式
   final void Function(int value) onSelected;
 
-  const ExpenditureAppBar({super.key, required this.onSelected});
+  final void Function() onCategory;
+
+
+  const ExpenditureAppBar({super.key, required this.onSelected, required this.onCategory});
 
   @override
   Widget build(BuildContext context) {
@@ -681,12 +690,14 @@ class ExpenditureAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         PopupMenuButton<String>(
           position: PopupMenuPosition.under,
-          itemBuilder: (context) => ['help']
+          itemBuilder: (context) => ['分类 / 详情']
               .map((value) =>
                   PopupMenuItem(value: value, child: Text(value).tr()))
               .toList(),
           onSelected: (_) {
             print(_);
+            // ...
+            onCategory();
           },
           child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),

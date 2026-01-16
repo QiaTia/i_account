@@ -249,8 +249,8 @@ class DBManager {
   }
   
   /// 图表页面按照条件查询记录
-  Future<(List<CategoryStatistics>, Map<String, double>, double)> selectRecordByCondition(DateTime startDate, DateTime endDate, [CategoryType type = CategoryType.expense, int group = 0]) async {
-    String data = "SELECT `category_id`, `id`, `bill_date`, `amount` FROM `records` WHERE category_type = ? AND bill_date >= ? AND bill_date < ? AND `is_deleted` = 0 ORDER BY `bill_date` ASC";
+  Future<(List<CategoryStatistics>, Map<String, double>, double)> selectRecordByCondition(DateTime startDate, DateTime endDate, [CategoryType type = CategoryType.expense, int group = 0, bool isCategory = true]) async {
+    String data = "SELECT `category_id`, `id`, `bill_date`, `amount`, `name` FROM `records` WHERE `category_type` = ? AND `bill_date` >= ? AND `bill_date` < ? AND `is_deleted` = 0 ORDER BY `amount` DESC";
     List<Object> query = [type.state, formatDate(startDate), formatDate(endDate.add(const Duration(days: 1)))];
     var result = await db.rawQuery(data, query).catchError((err) {
       print('err:$err');
@@ -267,6 +267,7 @@ class DBManager {
     for (var it in dateStrList) {
       groupedData[it] = 0.0; // 初始化日期数据
     }
+    List<CategoryStatistics> categoryStatistics = [];
     /// 处理查询结果
     for (var it in result) {
       var amount = it['amount'] as double;
@@ -280,21 +281,33 @@ class DBManager {
       double countDateAmount = groupedData[billDate] ?? 0;
       groupedData[billDate] = ((countDateAmount + amount) * 100).toInt() / 100;
       totalAmount += amount;
+      // 展示没条数据
+      if (!isCategory) {
+        categoryStatistics.add(CategoryStatistics(
+          id: itCategoryId,
+          name: it['name'] as String,
+          type: type,
+          totalAmount: it['amount'] as double,
+          icon: '',
+        ));
+      }
     }
-
-    List<Map<String, dynamic>> queryCategoryData = await db.rawQuery('SELECT * FROM `category` WHERE id IN (${categoryData.keys.join(',')})');
-    List<CategoryStatistics> categoryStatistics = queryCategoryData.map((it)  {
-      var item = CategoryStatistics(
-        id: it['id'],
-        name: it['name'],
-        type: CategoryType.fromInt(it['type']),
-        icon: it['icon'],
-        totalAmount: ((categoryData[(it['id'] as int)] ?? 0) * 100).toInt() / 100,
-      );
-      return item;
-    })
-      .toList();
-    categoryStatistics.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
+    // 按分类归档
+    if (isCategory) {
+      List<Map<String, dynamic>> queryCategoryData = await db.rawQuery('SELECT * FROM `category` WHERE id IN (${categoryData.keys.join(',')})');
+      categoryStatistics = queryCategoryData.map((it)  {
+        var item = CategoryStatistics(
+          id: it['id'],
+          name: it['name'],
+          type: type,
+          icon: it['icon'],
+          totalAmount: ((categoryData[(it['id'] as int)] ?? 0) * 100).toInt() / 100,
+        );
+        return item;
+      })
+        .toList();
+      categoryStatistics.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));
+    }
     return (categoryStatistics, groupedData, (totalAmount* 100).toInt() / 100);
   }
 
