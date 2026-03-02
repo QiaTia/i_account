@@ -64,7 +64,7 @@
       flutter-build-windows:
         name: "Release for windows"
         runs-on: "windows-latest"
-        needs: [flutter-build-android, flutter-build-ios, flutter-build-linux, flutter-build-macos] 
+        needs: [flutter-build-android, flutter-build-ios, flutter-build-macos] 
         permissions: write-all
     
         steps:
